@@ -1,0 +1,208 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| is assigned the "api" middleware group. Enjoy building your API!
+|
+*/
+#LOGINS
+    #LOGIN-ADDIN
+    Route::post('login','Auth\LoginController@login_addin');
+    #LOGIN-WEB
+    Route::post('login_web','Auth\LoginController@login_web');
+    Route::post('proses_bri_stars','Auth\LoginController@proses_api');
+#upload Image Attachment
+    Route::post('upimgcontent', 'KontribusiController@upimgcontent');
+    Route::get('/notifproject','NotifikasiController@indexproject');
+
+    Route::middleware('auth:sanctum')->group(function(){
+    #ADDIN-MS-WORD
+        Route::post('/cek_auth','Auth\CekauthController');
+        Route::post('/logout','Auth\LogoutController'); //web juga pakai ini
+        Route::post('/searchproject','DownloadController@searchproject');
+        Route::post('/search/','PencarianController@cariall');
+        Route::post('/managedocument','DocumentController@index');
+
+    // #WEB
+        //#ADMIN
+            #Dashboard
+                Route::get('/dashboard/project','DashboardController@getProjectList');
+                Route::get('/dashboard/visitor','DashboardController@getVisitor');
+                Route::get('/dashboard/getalldatagrafik','DashboardController@getalldatagrafik');
+                Route::get('/dashboard/getprojectvisitor','DashboardController@getProjectVisitor');
+                Route::get('/dashboard/getprojectconsultant','DashboardController@getProjectKonsultan');
+                Route::get('/dashboard/getprojectdivisi','DashboardController@getProjectDivisi');
+                Route::get('/dashboard/getprojecttahun','DashboardController@getProjectTahun');
+                Route::get('/dashboard/getprojectpertahun','DashboardController@getProjectPerTahun');
+                Route::get('/dashboard/getprojecttags','DashboardController@getProjectTags');
+            #Management User
+                Route::get('/manageuser','ManageUserController@index');
+                Route::get('/manageuser/{search}','ManageUserController@listuser');
+                Route::get('/manageuser/detail/{id}','ManageUserController@detail');
+                Route::post('/manageuser/edit/{id}','ManageUserController@edit');
+                Route::delete('/manageuser/destroy/{id}','ManageUserController@hapus');
+                Route::post('/manageuser/searchpn','ManageUserController@searchpn'); // Free Search user
+                Route::post('/manageuser/searchma','ManageUserController@searchma'); // peruntukan mencari user selain admin yang udah existing
+                Route::post('/manageuser/searchkcs','ManageUserController@searchkcs'); // peruntukan mencari user checker signer
+                Route::post('/manageuser/admin/create','ManageUserController@admin_create');
+
+            #Management Uker
+                Route::get('/manageuker','ManageUkerController@index');
+                Route::get('/manageuker/{sort}/{sort2}/{search}','ManageUkerController@index_content');
+                Route::post('/manageuker/create','ManageUkerController@create');
+                Route::get('/manageuker/detail/{id}','ManageUkerController@detail');
+                Route::post('/manageuker/edit/{id}','ManageUkerController@update');
+                Route::delete('/manageuker/delete/{id}','ManageUkerController@hapus');
+
+            #Management Consultatn
+                Route::get('/manageconsultant','ManageConsultantController@index');
+                Route::get('/manageconsultant/{sort}/{sort2}/{search}','ManageConsultantController@index_content');
+                Route::post('/manageconsultant/create','ManageConsultantController@create');
+                Route::get('/manageconsultant/detail/{id}','ManageConsultantController@detail');
+                Route::post('/manageconsultant/edit/{id}','ManageConsultantController@update');
+                Route::delete('/manageconsultant/delete/{id}','ManageConsultantController@hapus');
+
+            #Management Project
+                Route::get('/manageproject','ManageProjectController@index');
+                Route::get('/manageproject/review','ManageProjectController@review');
+                Route::get('/manageproject/rekomendasi','ManageProjectController@rekomendasi');
+                // Route::get('/manageproject/rekomendasi/all','ManageProjectController@all');
+                Route::post('/manageproject/review/passing/{tipe}','ManageProjectController@passing');
+                Route::post('/manageproject/rekomendasi/add/{id}','ManageProjectController@add');
+                Route::post('/manageproject/rekomendasi/remove/{id}','ManageProjectController@hapus_rekomendasi');
+                Route::post('/manageproject/review/publish/{id}','ManageProjectController@publish');
+                Route::post('/manageproject/review/unpublish/{id}','ManageProjectController@unpublish');
+                Route::delete('/manageproject/review/destroy/{id}','ManageProjectController@hapus');
+                Route::get('/manageproject/review/{fil_div}/{fil_kon}/{search}','ManageProjectController@review_content');
+                Route::get('/manageproject/sort/{by}','ManageProjectController@sort');
+                Route::get('/manageproject/sortpass/{by}','ManageProjectController@sortpass'); //untested
+        #---
+
+        #ALL USER
+            #editprofile
+            Route::post('/editprofiles','HomeController@editprof');
+            #notificaiton
+            Route::get('/notif','NotifikasiController@index');
+            Route::post('/notif','NotifikasiController@update');
+            #gammification congratulation
+            // Route::get('/congrats','HomeController@congrats');  //udah g di pake di gabung ke /notif [GET]
+            Route::post('/congrats','HomeController@congrats_update');
+            #Home
+                Route::get('/beranda','HomeController@index');
+                Route::get('/suggestionberanda/{key}', 'HomeController@suggestionberanda');
+                Route::get('/topfivevendor', 'HomeController@topfive_vendor');
+                Route::get('/topfiveproject', 'HomeController@topfive_project');
+                Route::get('/profile', 'HomeController@profile');
+                Route::get('/profile/{pn}', 'HomeController@profileuser');
+                Route::get('/gamification', 'HomeController@gamification');
+                Route::post('/changeavatar' ,'HomeController@changeavatar');
+            #laporan
+            Route::get('/proyektop5', 'LaporanController@proyektopfive');
+            Route::get('/vendortop5', 'LaporanController@vendortopfive');
+            Route::get('/getProjectVisitor', 'LaporanController@getProjectVisitor');
+            Route::get('/getProjectConsultant', 'LaporanController@getProjectKonsultan');
+            Route::get('/getprojectdivisi','LaporanController@getProjectDivisi');
+
+            #Konsultan
+                Route::get('/consultant/{id}','ConsultantController@index');
+
+            #Project
+                Route::post('/archieve','ProjectController@archieve');
+                Route::get('/project/{slug}','ProjectController@index');
+                Route::get('/projectpreview/{slug}','ProjectController@preview');
+                Route::get('/myproject','MyProjectController@index');
+                Route::post('/detailproject/{id}','DownloadController@detailproject');
+            #Favorit
+                Route::get('/myfavorite','MyFavoriteController@getFavs');
+                Route::post('/bookmark_project/{id}','FavoriteProjectController@save');
+                Route::post('/bookmark_consultant/{id}','FavoriteConsultantController@save');
+                Route::get('/favorite_proj/{sort}','MyFavoriteController@fav_proj');
+                Route::get('/favorite_cons/{sort}','MyFavoriteController@fav_cons');
+            #Comment
+            
+                Route::post('/comment/create','CommentController@create');
+                Route::post('/commentforum/create','CommentController@createforum');
+
+            #Divisi
+                Route::get('/divisi/{id}','DivisiController@getDivisi');
+                Route::get('/divisibydirektorat/{sample}','DivisiController@getDivisiByDirektorat');
+
+            #Pencarian
+                Route::post('/search/{katakunci}','PencarianController@cari');
+                Route::post('/detail/{id}','PencarianController@detail'); 
+                Route::get('/proj_divisi/{kunci}/{search}','PencarianController@proj_divisi');
+                Route::get('/document_proj/{kunci}/{search}/{sort}','PencarianController@doc_project');
+                Route::get('/project_consultant/{kunci}/{search}/{sort}','PencarianController@proj_consultant');
+
+            #Katalog
+                Route::get('/kat','ProjectController@all');
+                Route::get('/bahan_katalog','ProjectController@bahan_filter');
+                Route::post('/fit','ProjectController@filterisasi');
+        
+            #kontribusi
+                # create project
+                Route::get('/prepare_form', 'KontribusiController@prepare_form');
+
+                #edit project
+                Route::get('/prepare_form/{slug}', 'KontribusiController@prepare_form_edit');
+                
+                #upload file
+                    Route::post('/up/{kategori}','KontribusiController@uploadphoto');
+                    Route::delete('/up/{kategori}','KontribusiController@delete');
+                    Route::post('/kontribusi/create','KontribusiController@create');
+                    Route::post('/kontribusi/update/{id}','KontribusiController@update');
+                #bahan
+                    Route::get('/getconsultant','ConsultantController@getConsultant');
+                    Route::get('/getuser','KontribusiController@getUser');
+                #approval alert
+                    Route::post('/kontribusi/appr','KontribusiController@approval');
+                    Route::post('/kontribusi/hapus','KontribusiController@hapus');
+                    Route::post('/kontribusi/send','KontribusiController@send');
+                    Route::post('/kontribusi/reject','KontribusiController@reject');
+
+            #Forum
+                #prepare form forum
+                Route::get('/forum/prepare_form', 'ForumController@prepare_form');
+
+                #list forum
+                Route::get('/forum/{search}','ForumController@listforum');
+                
+                Route::get('/manageforum/removed/{search}','DashboardController@listremoved');
+                Route::get('/manageforum/removed/sort/public/{search}','DashboardController@sortPublicRemoved');
+                Route::get('/manageforum/removed/sort/private/{search}','DashboardController@sortPrivateRemoved');
+                
+                Route::get('/manageforum/all/{search}','DashboardController@listall');
+                Route::get('/manageforum/all/sort/public/{search}','DashboardController@sortPublic');
+                Route::get('/manageforum/all/sort/private/{search}','DashboardController@sortPrivate');
+                
+                Route::get('/manageforum/all','DashboardController@manageforum_all');
+                Route::get('/manageforum/removed','DashboardController@manageforum_removed');
+                Route::get('/manageforum/save','DashboardController@adminforumsave');
+                Route::post('/manageforum/all/remove/{id}','DashboardController@remove');
+                Route::post('/manageforum/removed/restore/{id}','DashboardController@restore');
+
+                #Create forum
+                Route::get('/forum', 'ForumController@index');
+                Route::post('/forum/create', 'ForumController@create');
+                Route::post('/forum/draft/save', 'ForumController@saveDraft');
+                Route::get('/forum/draft/{id}', 'ForumController@draft');
+                Route::delete('/forum/destroy/{id}', 'ForumController@hapus');
+                Route::get('/forum/detail/{slug}', 'ForumController@detail');
+                Route::post('/forum/comment/create','ForumController@comment');
+
+            #GAMIFICATION
+                Route::get('/managegamification','DashboardController@managegamification');
+                Route::post('/managegamification/save/level','DashboardController@gamificationsave_level');
+                Route::post('/managegamification/save/activity','DashboardController@gamificationsave_activity');
+                Route::post('/managegamification/save/achievement','DashboardController@gamificationsave_achievement');
+        #---
+    #---
+});

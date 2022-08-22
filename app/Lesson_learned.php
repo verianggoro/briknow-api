@@ -6,27 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Lesson_learned extends Model
 {
-    protected $fillable = ['project_id','lesson_learned','detail'];
-    public $timestamps = false;
-
-    protected $mapping = [
-        'properties'    =>  [
-            'project_id'=>[
-                'type' =>  'integer',
-                'analyzer'  =>  'not_analyzed'
-            ],
-            'lesson_learned' => [                
-                'type' =>  'text',
-                'analyzer' => 'english'
-            ],
-            'detail' => [
-                'type' => 'string',
-                'analyzer' => 'english'
-            ]
-        ]
-    ];
+    protected $fillable = ['id','project_id','divisi_id','consultant_id','tahap','lesson_learned','detail', 'checker_at', 'signer_at', 'review_at', 'publish_at'];
 
     public function project(){
         return $this->belongsTo(Project::class,'project_id');
+    }
+
+    public function divisi(){
+        return $this->belongsTo(Divisi::class, 'divisi_id');
+    }
+
+    public function consultant(){
+        return $this->belongsTo(Consultant::class, 'consultant_id');
     }
 }

@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Seeder;
 
-class KeywordsSeeder extends Seeder
+class LessonLearnedSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -11,6 +11,6 @@ class KeywordsSeeder extends Seeder
      */
     public function run()
     {
-        factory(\App\Keywords::class, 100)->create();
+        factory(\App\Lesson_learned::class, 10)->create();
     }
 }

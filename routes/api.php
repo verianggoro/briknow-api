@@ -84,6 +84,9 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/manageproject/review/{fil_div}/{fil_kon}/{search}','ManageProjectController@review_content');
                 Route::get('/manageproject/sort/{by}','ManageProjectController@sort');
                 Route::get('/manageproject/sortpass/{by}','ManageProjectController@sortpass'); //untested
+
+            #Manage Lesson Learned
+                Route::get('/managelessonlearned', 'LessonLearnedController@getAll');
         #---
 
         #ALL USER
@@ -127,7 +130,7 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/favorite_proj/{sort}','MyFavoriteController@fav_proj');
                 Route::get('/favorite_cons/{sort}','MyFavoriteController@fav_cons');
             #Comment
-            
+
                 Route::post('/comment/create','CommentController@create');
                 Route::post('/commentforum/create','CommentController@createforum');
 
@@ -137,7 +140,7 @@ use Illuminate\Support\Facades\Route;
 
             #Pencarian
                 Route::post('/search/{katakunci}','PencarianController@cari');
-                Route::post('/detail/{id}','PencarianController@detail'); 
+                Route::post('/detail/{id}','PencarianController@detail');
                 Route::get('/proj_divisi/{kunci}/{search}','PencarianController@proj_divisi');
                 Route::get('/document_proj/{kunci}/{search}/{sort}','PencarianController@doc_project');
                 Route::get('/project_consultant/{kunci}/{search}/{sort}','PencarianController@proj_consultant');
@@ -146,14 +149,14 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/kat','ProjectController@all');
                 Route::get('/bahan_katalog','ProjectController@bahan_filter');
                 Route::post('/fit','ProjectController@filterisasi');
-        
+
             #kontribusi
                 # create project
                 Route::get('/prepare_form', 'KontribusiController@prepare_form');
 
                 #edit project
                 Route::get('/prepare_form/{slug}', 'KontribusiController@prepare_form_edit');
-                
+
                 #upload file
                     Route::post('/up/{kategori}','KontribusiController@uploadphoto');
                     Route::delete('/up/{kategori}','KontribusiController@delete');
@@ -174,15 +177,15 @@ use Illuminate\Support\Facades\Route;
 
                 #list forum
                 Route::get('/forum/{search}','ForumController@listforum');
-                
+
                 Route::get('/manageforum/removed/{search}','DashboardController@listremoved');
                 Route::get('/manageforum/removed/sort/public/{search}','DashboardController@sortPublicRemoved');
                 Route::get('/manageforum/removed/sort/private/{search}','DashboardController@sortPrivateRemoved');
-                
+
                 Route::get('/manageforum/all/{search}','DashboardController@listall');
                 Route::get('/manageforum/all/sort/public/{search}','DashboardController@sortPublic');
                 Route::get('/manageforum/all/sort/private/{search}','DashboardController@sortPrivate');
-                
+
                 Route::get('/manageforum/all','DashboardController@manageforum_all');
                 Route::get('/manageforum/removed','DashboardController@manageforum_removed');
                 Route::get('/manageforum/save','DashboardController@adminforumsave');

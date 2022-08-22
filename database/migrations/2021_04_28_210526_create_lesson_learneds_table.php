@@ -14,9 +14,18 @@ class CreateLessonLearnedsTable extends Migration
     public function up()
     {
         Schema::create('lesson_learneds', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('project_id');
+            $table->foreignId("divisi_id");
+            $table->foreignId("consultant_id");
+            $table->string("tahap");
             $table->text('lesson_learned');
             $table->text('detail');
+            $table->datetime('checker_at')->nullable();
+            $table->datetime('signer_at')->nullable();
+            $table->datetime('review_at')->nullable();
+            $table->datetime('publish_at')->nullable();
+            $table->timestamps();
 
             $table->engine = 'MyISAM';
         });

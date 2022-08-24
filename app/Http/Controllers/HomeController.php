@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use stdClass;
 
 class HomeController extends Controller
@@ -33,18 +34,22 @@ class HomeController extends Controller
     public function __construct()
     {
     }
-    
+
     public function index()
     {
-        try {
             $get            = Project::where('is_recomended',1)->where('flag_mcs',5)->limit(6)->orderby('updated_at','DESC')->get();
             $getowner       = Divisi::withCount(['project' => function($q){
                 $q->where('flag_mcs',5);
             }])
             ->orderby('project_count','DESC')->limit(10)->get();
             $getconsultant  = Consultant::withCount('project')->orderby('project_count','DESC')->limit(10)->get();
-            $suggest        = Keywords::select('nama', DB::raw('count(*) as num'))->groupby('nama')->orderby('num','desc')->limit(5)->get();   
-            $leaderboard    = User::orderby('xp','desc')->limit(10)->get();   
+            $suggest        = Keywords::select('nama', DB::raw('count(*) as num'))->groupby('nama')->orderby('num','desc')->limit(5)->get();
+            $leaderboard    = User::orderby('xp','desc')->limit(10)->get();
+
+            Log::info("INI HASIL GET OWNER BE", [$getowner]);
+            Log::info("INI HASIL GET CONSULTANT BE", [$getconsultant]);
+            Log::info("INI HASIL GET SUGEST BE", [$suggest]);
+            Log::info("INI HASIL GET LEADERBOARD BE", [$leaderboard]);
 
             $levelling_user = [];
             foreach ($leaderboard as $l){
@@ -83,13 +88,7 @@ class HomeController extends Controller
                 "status"    => '1',
                 "data"      => $data
             ]);
-        } catch (\Throwable $th) {
-            $data['message']    =   "Terjadi Kesalahan";
-            return response()->json([
-                "status"    => '0',
-                "data"      => $data
-            ]);
-        }
+
     }
 
     public function topfive_vendor(){
@@ -183,7 +182,7 @@ class HomeController extends Controller
                         'Content-Type: application/json',
                         'Accept: application/json',
                     ];
-                    
+
             // postdata
                 $postData = [
                     "from"         => $from,
@@ -212,88 +211,88 @@ class HomeController extends Controller
                 $must   =   [];
                 // search
                     $searchs        =   [];
-                    
+
                     $match              =   new stdClass;
-                    $match->wildcard    =   ["nama"   => str_replace('"',"",$search)];  
+                    $match->wildcard    =   ["nama"   => str_replace('"',"",$search)];
                     $searchs[]          =  $match;
                     $match              =   new stdClass;
-                    $match->wildcard    =   ["deskripsi"   => str_replace('"',"",$search)];  
+                    $match->wildcard    =   ["deskripsi"   => str_replace('"',"",$search)];
                     $searchs[]          =  $match;
                     $match              =   new stdClass;
-                    $match->wildcard    =   ["consultant.nama"   => str_replace('"',"",$search)];  
+                    $match->wildcard    =   ["consultant.nama"   => str_replace('"',"",$search)];
                     $searchs[]          =  $match;
                     $match              =   new stdClass;
-                    $match->wildcard    =   ["project_managers"   => str_replace('"',"",$search)];  
+                    $match->wildcard    =   ["project_managers"   => str_replace('"',"",$search)];
                     $searchs[]          =  $match;
                     $match              =   new stdClass;
-                    $match->wildcard    =   ["divisi"   => str_replace('"',"",$search)];  
+                    $match->wildcard    =   ["divisi"   => str_replace('"',"",$search)];
                     $searchs[]          =  $match;
                     $match              =   new stdClass;
-                    $match->wildcard    =   ["keywords.nama"   => str_replace('"',"",$search)];  
+                    $match->wildcard    =   ["keywords.nama"   => str_replace('"',"",$search)];
                     $searchs[]          =  $match;
 
                     // ------------------
                     $should             =   new stdClass;
-                    $should->bool       =   ["should"   => $searchs];  
+                    $should->bool       =   ["should"   => $searchs];
                     $must[]             =  $should;
 
                 // filter
                     // flag mcs
                     // $mcs            =   [];
                         $match          =   new stdClass;
-                        $match->match   =   ["flag_mcs"   =>  5];  
+                        $match->match   =   ["flag_mcs"   =>  5];
                         $must[]   =  $match;
-                    
+
                     // consultant
                         $consultants        =   [];
                         if (!empty($consultant)) {
                             if (count($consultant) > 0) {
-                                for ($i=0; $i < count($consultant); $i++) { 
+                                for ($i=0; $i < count($consultant); $i++) {
                                     // $consult        =   [];
                                     $match          =   new stdClass;
-                                    $match->match   =   ["consultant.nama"   => str_replace('"',"",$consultant[$i])];  
+                                    $match->match   =   ["consultant.nama"   => str_replace('"',"",$consultant[$i])];
                                     $consultants[]         =  $match;
                                 }
                             }
                         }
                         $should             =   new stdClass;
-                        $should->bool       =   ["should"   => $consultants];  
+                        $should->bool       =   ["should"   => $consultants];
                         $must[]             =  $should;
 
                     // divisi
                         $divisis        =   [];
                         if (!empty($divisi)) {
                             if (count($divisi) > 0) {
-                                for ($i=0; $i < count($divisi); $i++) { 
+                                for ($i=0; $i < count($divisi); $i++) {
                                     // $consult        =   [];
                                     $match          =   new stdClass;
-                                    $match->match   =   ["divisi"   => str_replace('"',"",$divisi[$i])];  
+                                    $match->match   =   ["divisi"   => str_replace('"',"",$divisi[$i])];
                                     $divisis[]         =  $match;
                                 }
                             }
                         }
                         $should             =   new stdClass;
-                        $should->bool       =   ["should"   => $divisis];  
+                        $should->bool       =   ["should"   => $divisis];
                         $must[]             =  $should;
 
                     // tahun
                         $year        =   [];
                         if (!empty($tahun)) {
                             if (count($tahun) > 0) {
-                                for ($i=0; $i < count($tahun); $i++) { 
+                                for ($i=0; $i < count($tahun); $i++) {
                                     $t                          =   str_replace('"',"",$tahun[$i]);
                                     $range                      =   new stdClass;
                                     $contentrange               =   new stdClass;
                                     $contentrange->time_zone    =   "+01:00";
                                     $contentrange->gte          =   "$t-01T00:00:00";
                                     $contentrange->lte          =   "$t-31T00:00:00";
-                                    $range->range               =   ["tanggal_mulai"   => $contentrange];  
+                                    $range->range               =   ["tanggal_mulai"   => $contentrange];
                                     $year[]                     =  $range;
                                 }
                             }
                         }
                         $should             =   new stdClass;
-                        $should->bool       =   ["should"   => $year];  
+                        $should->bool       =   ["should"   => $year];
                         $must[]             =  $should;
 
                 // supply
@@ -306,7 +305,7 @@ class HomeController extends Controller
             curl_setopt($ch, CURLOPT_URL,config('app.ES_url')."/project/_search");
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData,JSON_PRETTY_PRINT));           
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData,JSON_PRETTY_PRINT));
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             $result     = curl_exec ($ch);
             $hasil = json_decode($result);
@@ -379,7 +378,7 @@ class HomeController extends Controller
     public function profileuser($pn)
     {
         $query          = User::where('personal_number', $pn)->latest()->first();
-        
+
         // pengecheckan apakah user terdaftar atau tidak
         if (!isset($query->id)) {
             $datas['message']    =   'User Belum Terdaftar';
@@ -392,7 +391,7 @@ class HomeController extends Controller
         $qProjects      = Project::where('user_maker', $pn)->orderBy('created_at', 'DESC')->get();
         $qActivities    = Project::where('user_maker', $pn)->orderBy('created_at', 'DESC')->get();
         $his_activity   = ActivityUser::where('personal_number', $pn)->orderBy('created_at', 'ASC')->get();
-        
+
         $qLevel         = Level::orderBy('xp', 'ASC')->get();
         $qAvatar        = Avatar::get();
 
@@ -433,7 +432,7 @@ class HomeController extends Controller
             ],200);
         }
     }
-    
+
     public function gamification()
     {
         $qUser  = User::where('personal_number', Auth::user()->personal_number)->latest()->first();
@@ -463,7 +462,7 @@ class HomeController extends Controller
             ],200);
         }
     }
-    
+
     public function changeavatar(){
         try {
             // tampung
@@ -488,7 +487,7 @@ class HomeController extends Controller
 
             // response
             $dataresponse['message']        =   'Update Avatar Berhasil.';
-            $dataresponse['data']           =   $temp['avatar_id'];  
+            $dataresponse['data']           =   $temp['avatar_id'];
             return response()->json([
                 "status"    => 1,
                 "data"      => $dataresponse,

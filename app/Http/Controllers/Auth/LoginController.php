@@ -10,6 +10,7 @@ use App\User;
 use App\User_log;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Validator;
 use Illuminate\Support\Facades\Hash;
 use Session;
@@ -49,19 +50,19 @@ class LoginController extends Controller
                 $data = User::where('personal_number', $request->personal_number)->first();
                 if (!empty($data)){
                     //setelah save loginkan otomatis tanpa password
-                    $datauser['ip_address']       =   request()->ip;   
+                    $datauser['ip_address']       =   request()->ip;
                     try {
                         $position = \Location::get($datauser['ip_address']);
                     } catch (\Throwable $th) {}
                     $datauser['user_id']          =   $data->id;
-                    $datauser['country_name']     =   $position->countryName??null;   
-                    $datauser['country_code']     =   $position->countryName??null;   
-                    $datauser['region_code']      =   $position->regionCode??null;   
-                    $datauser['city_name']        =   $position->cityName??null;   
-                    $datauser['zip_code']         =   $position->zipCode??null;   
-                    $datauser['latitude']         =   $position->latitude??null;   
-                    $datauser['longitude']        =   $position->longitude??null;   
-                    $datauser['area_code']        =   $position->areaCode??null;   
+                    $datauser['country_name']     =   $position->countryName??null;
+                    $datauser['country_code']     =   $position->countryName??null;
+                    $datauser['region_code']      =   $position->regionCode??null;
+                    $datauser['city_name']        =   $position->cityName??null;
+                    $datauser['zip_code']         =   $position->zipCode??null;
+                    $datauser['latitude']         =   $position->latitude??null;
+                    $datauser['longitude']        =   $position->longitude??null;
+                    $datauser['area_code']        =   $position->areaCode??null;
                     User_log::create($datauser);
 
                     // Event Activity
@@ -81,7 +82,7 @@ class LoginController extends Controller
                     // -----------------------------
                     // tempat API Auth
                     // -----------------------------
-                        // init hasil 
+                        // init hasil
                         $access_token = '';
                         // ---------------
                         $ch = curl_init();
@@ -163,19 +164,19 @@ class LoginController extends Controller
 
                     //setelah save loginkan otomatis tanpa password
                     $cek_user_baru = User::where('personal_number',$request->personal_number)->first();
-                    $datauser['ip_address']       =   request()->ip;   
+                    $datauser['ip_address']       =   request()->ip;
                     try {
                         $position = \Location::get($datauser['ip_address']);
                     } catch (\Throwable $th) {}
                     $datauser['user_id']          =   $cek_user_baru->id;
-                    $datauser['country_name']     =   $position->countryName??null;   
-                    $datauser['country_code']     =   $position->countryName??null;   
-                    $datauser['region_code']      =   $position->regionCode??null;   
-                    $datauser['city_name']        =   $position->cityName??null;   
-                    $datauser['zip_code']         =   $position->zipCode??null;   
-                    $datauser['latitude']         =   $position->latitude??null;   
-                    $datauser['longitude']        =   $position->longitude??null;   
-                    $datauser['area_code']        =   $position->areaCode??null;   
+                    $datauser['country_name']     =   $position->countryName??null;
+                    $datauser['country_code']     =   $position->countryName??null;
+                    $datauser['region_code']      =   $position->regionCode??null;
+                    $datauser['city_name']        =   $position->cityName??null;
+                    $datauser['zip_code']         =   $position->zipCode??null;
+                    $datauser['latitude']         =   $position->latitude??null;
+                    $datauser['longitude']        =   $position->longitude??null;
+                    $datauser['area_code']        =   $position->areaCode??null;
                     User_log::create($datauser);
 
                     // Event Activity
@@ -239,231 +240,254 @@ class LoginController extends Controller
             ],200);
         }
         try{
-            //hit SOAP LDAP
-            $hitLDAP = $this->LDAP(request()->personal_number, request()->katasandi);
+//            hit SOAP LDAP
+//            $hitLDAP = $this->LDAP(request()->personal_number, request()->katasandi);
+            $data           = User::where('personal_number', $request->personal_number)->first();
+            $data->tokens()->delete();
+            $kirim['id']                 =   $data->id;
+            $kirim['avatar_id']          =   $data->avatar_id;
+            $kirim['exp']                =   $data->xp;
+//            $kirim['level_id']           =   $cekleveling->id;
+//            $kirim['level_name']         =   $cekleveling->name;
+            $kirim['name']               =   $data->name;
+            $kirim['personal_number']    =   $data->personal_number;
+            $kirim['username']           =   $data->username;
+            $kirim['email']              =   $data->email;
+            $kirim['direktorat']         =   $data->divisis->id??11111111;
+            $kirim['divisi']             =   $data->divisis->id??11111111;
+            $kirim['last_login_at']      =   $data->last_login_at;
+            $kirim['role']               =   $data->role;
+            $kirim['login_at']           =   Carbon::now();
+//            $kirim['token_bri']          =   $access_token??'dummy';
+            $kirim['token']              =   $data->createToken('web-token')->plainTextToken;
 
+            Log::info("DATA BE LOGIN", [$kirim]);
+            return response()->json([
+                "status"    =>  1,
+                "data"      =>  $kirim
+            ],200);
             //sukses maka :
-            $ResponseCostcenter     = '';
-            $Responsenama = '';
-            // $hitLDAP = true;
-            if ($hitLDAP !== false) {
-                $data           = User::where('personal_number', $request->personal_number)->first();
-                if (isset($data->personal_number)){
-                    // ==================================
-                    // get token BRI
-                    // ==================================
-                        // init hasil 
-                        $access_token = '';
-                        // ---------------
-                        $ch = curl_init();
-                        $headers  = [
-                                    'Content-Type: application/json',
-                                    'Accept: application/json',
-                                ];
-                        $postData = [
-                            'client_id'     => 'briknow',
-                            'client_secret' => 'fa14f443b2433ecc7a3091942aff8c41fdc92a90',
-                            'scope'         => 'public',
-                            'grant_type'    => 'client_credentials',
-                        ];
-                        curl_setopt($ch, CURLOPT_URL,config('app.api_auth_bristar'));
-                        curl_setopt($ch, CURLOPT_POST, 1);
-                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
-                        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
-                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-                        $result     = curl_exec ($ch);
-                        $hasil      = json_decode($result);
-                        if (isset($hasil->access_token)) {
-                            $access_token = $hasil->access_token;
-                        }else{
-                            $msg['message'] =   'Get User Failed';
-                            return response()->json([
-                                "status"    =>  0,
-                                "data"      =>  $msg
-                            ],200);
-                        }
-                    // ==================================
-                    // save log
-                    $datauser['ip_address']     =   request()->ip;   
-                    try {
-                        $position = \Location::get($datauser['ip_address']);
-                    } catch (\Throwable $th) {}
-                    $cekleveling    = Level::where('xp', '<=',$data->xp)->orderby('xp','desc')->first();
-                    $datauser['user_id']          =   $data->id;   
-                    $datauser['country_name']     =   $position->countryName??null;   
-                    $datauser['country_code']     =   $position->countryName??null;   
-                    $datauser['region_code']      =   $position->regionCode??null;   
-                    $datauser['city_name']        =   $position->cityName??null;   
-                    $datauser['zip_code']         =   $position->zipCode??null;   
-                    $datauser['latitude']         =   $position->latitude??null;   
-                    $datauser['longitude']        =   $position->longitude??null;   
-                    $datauser['area_code']        =   $position->areaCode??null;   
-                    User_log::create($datauser);
-
-                    // Event Activity
-                    event(new TriggerActivityEvent(6, $request->personal_number));
-
-                    // return
-                    $data->tokens()->delete();
-                    $kirim['id']                 =   $data->id;
-                    $kirim['avatar_id']          =   $data->avatar_id;
-                    $kirim['exp']                =   $data->xp;
-                    $kirim['level_id']           =   $cekleveling->id;
-                    $kirim['level_name']         =   $cekleveling->name;
-                    $kirim['name']               =   $data->name;
-                    $kirim['personal_number']    =   $data->personal_number;
-                    $kirim['username']           =   $data->username;
-                    $kirim['email']              =   $data->email;
-                    $kirim['direktorat']         =   $data->divisis->id??11111111;
-                    $kirim['divisi']             =   $data->divisis->id??11111111;
-                    $kirim['last_login_at']      =   $data->last_login_at;
-                    $kirim['role']               =   $data->role;
-                    $kirim['login_at']           =   Carbon::now();
-                    $kirim['token_bri']          =   $access_token??'dummy';
-                    $kirim['token']              =   $data->createToken('web-token')->plainTextToken;
-
-                    return response()->json([
-                        "status"    =>  1,
-                        "data"      =>  $kirim
-                    ],200);
-                }else{
-                    // -----------------------------
-                    // tempat API Auth
-                    // -----------------------------
-                        // init hasil 
-                        $access_token = '';
-                        // ---------------
-                        $ch = curl_init();
-                        $headers  = [
-                                    'Content-Type: application/json',
-                                    'Accept: application/json',
-                                ];
-                        $postData = [
-                            'client_id'     => 'briknow',
-                            'client_secret' => 'fa14f443b2433ecc7a3091942aff8c41fdc92a90',
-                            'scope'         => 'public',
-                            'grant_type'    => 'client_credentials',
-                        ];
-                        curl_setopt($ch, CURLOPT_URL,config('app.api_auth_bristar'));
-                        curl_setopt($ch, CURLOPT_POST, 1);
-                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
-                        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
-                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-                        $result     = curl_exec ($ch);
-                        $hasil      = json_decode($result);
-                        if (isset($hasil->access_token)) {
-                            $access_token = $hasil->access_token;
-
-                            // -----------------------------
-                            // tempat API Detail User
-                            // -----------------------------
-                            $ch2 = curl_init();
-                            $headers  = [
-                                        'Content-Type: application/json',
-                                        'Accept: application/json',
-                                        "Authorization: Bearer $access_token",
-                                    ];
-                            $postData = [
-                                'pernr'     => $request->personal_number,
-                            ];
-                            curl_setopt($ch2, CURLOPT_URL,config('app.api_detail_pekerja_bristar'));
-                            curl_setopt($ch2, CURLOPT_POST, 1);
-                            curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER , false);
-                            curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($postData));
-                            curl_setopt($ch2, CURLOPT_RETURNTRANSFER, 1);
-                            curl_setopt($ch2, CURLOPT_HTTPHEADER, $headers);
-                            $result2     = curl_exec ($ch2);
-                            $hasil2      = json_decode($result2);
-                            if (isset($hasil2->responseData->COST_CENTER)) {
-                                $ResponseCostcenter = $hasil2->responseData->COST_CENTER;
-                                $Responsenama       = $hasil2->responseData->NAMA;
-                            }else{
-                                $msg['message'] =   'Akun Tidak Ditemukan';
-                                return response()->json([
-                                    "status"    =>  0,
-                                    "data"      =>  $msg
-                                ],200);
-                            }
-                        }else{
-                            $msg['message'] =   'Get User Failed';
-                            return response()->json([
-                                "status"    =>  0,
-                                "data"      =>  $msg
-                            ],200);
-                        }
-                    // -----------------------------
-
-                    //kita perlu hasil kembalian API Bristar disini untuk dilakukan REGISTRASI AKUN yg belum Terdaftar tapi Personal Number valid
-                    //daftarkan jika kembalian LDAP tidak menemukan
-                    $dataDivisi = Divisi::where('cost_center', $ResponseCostcenter)->first();
-                    // add user
-                    $new                    = new User();
-                    $new->name              = $Responsenama??'User';
-                    $new->personal_number   = $request->personal_number;
-                    $new->username          = $Responsenama??'User';
-                    $new->email             = $hitLDAP;
-                    $new->role              = 0;
-                    $new->divisi            = isset($dataDivisi->id)? $dataDivisi->id : 11111111;
-                    $new->last_login_at     = Carbon::now();
-                    $new->xp                = 0;
-                    $new->avatar_id         = 1;
-                    $new->save();
-
-                    //setelah save loginkan otomatis tanpa password
-                    $cek_user_baru = User::where('personal_number',$request->personal_number)->first();
-                    $datauser['ip_address']       =   request()->ip;   
-                    try {
-                        $position = \Location::get($datauser['ip_address']);
-                    } catch (\Throwable $th) {}
-                    $cekleveling    = Level::where('xp', '<=',$cek_user_baru->xp)->orderby('xp','desc')->first();
-                    $datauser['user_id']          =   $cek_user_baru->id;   
-                    $datauser['country_name']     =   $position->countryName??null;   
-                    $datauser['country_code']     =   $position->countryName??null;   
-                    $datauser['region_code']      =   $position->regionCode??null;   
-                    $datauser['city_name']        =   $position->cityName??null;   
-                    $datauser['zip_code']         =   $position->zipCode??null;   
-                    $datauser['latitude']         =   $position->latitude??null;   
-                    $datauser['longitude']        =   $position->longitude??null;   
-                    $datauser['area_code']        =   $position->areaCode??null;   
-                    User_log::create($datauser);
-
-                    // Event Activity
-                    event(new TriggerActivityEvent(6, $cek_user_baru->personal_number));
-
-                    // return
-                    $cek_user_baru->tokens()->delete();
-                    $kirim['id']                 =   $cek_user_baru->id;
-                    $kirim['avatar_id']          =   $cek_user_baru->avatar_id;
-                    $kirim['exp']                =   $cek_user_baru->xp;
-                    $kirim['level_id']           =   $cekleveling->id;
-                    $kirim['level_name']         =   $cekleveling->name;
-                    $kirim['name']               =   $cek_user_baru->name;
-                    $kirim['personal_number']    =   $cek_user_baru->personal_number;
-                    $kirim['username']           =   $cek_user_baru->username;
-                    $kirim['email']              =   $cek_user_baru->email;
-                    // $kirim['is_admin']           =   $cek_user_baru->is_admin;
-                    $kirim['direktorat']         =   $cek_user_baru->divisis->id??11111111;
-                    $kirim['divisi']             =   $cek_user_baru->divisis->id??11111111;
-                    $kirim['last_login_at']      =   $cek_user_baru->last_login_at;
-                    $kirim['role']               =   $cek_user_baru->role;
-                    $kirim['login_at']           =   Carbon::now();
-                    $kirim['token_bri']          =   $access_token;
-                    $kirim['token']              =   $cek_user_baru->createToken('web-token')->plainTextToken;
-
-                    return response()->json([
-                        "status"    =>  1,
-                        "data"      =>  $kirim
-                    ],200);
-                }
-            } else{
-                $data['message']    =   'Personal Number / Password Salah';
-                return response()->json([
-                    'status'    =>  0,
-                    'data'      =>  $data
-                ],200);
-            }
+//            $ResponseCostcenter     = '';
+//            $Responsenama = '';
+//            // $hitLDAP = true;
+//            if ($hitLDAP !== false) {
+//                $data           = User::where('personal_number', $request->personal_number)->first();
+//                if (isset($data->personal_number)){
+//                    // ==================================
+//                    // get token BRI
+//                    // ==================================
+//                        // init hasil
+//                        $access_token = '';
+//                        // ---------------
+//                        $ch = curl_init();
+//                        $headers  = [
+//                                    'Content-Type: application/json',
+//                                    'Accept: application/json',
+//                                ];
+//                        $postData = [
+//                            'client_id'     => 'briknow',
+//                            'client_secret' => 'fa14f443b2433ecc7a3091942aff8c41fdc92a90',
+//                            'scope'         => 'public',
+//                            'grant_type'    => 'client_credentials',
+//                        ];
+//                        curl_setopt($ch, CURLOPT_URL,config('app.api_auth_bristar'));
+//                        curl_setopt($ch, CURLOPT_POST, 1);
+//                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
+//                        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+//                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+//                        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+//                        $result     = curl_exec ($ch);
+//                        $hasil      = json_decode($result);
+//                        if (isset($hasil->access_token)) {
+//                            $access_token = $hasil->access_token;
+//                        }else{
+//                            $msg['message'] =   'Get User Failed';
+//                            return response()->json([
+//                                "status"    =>  0,
+//                                "data"      =>  $msg
+//                            ],200);
+//                        }
+//                    // ==================================
+//                    // save log
+//                    $datauser['ip_address']     =   request()->ip;
+//                    try {
+//                        $position = \Location::get($datauser['ip_address']);
+//                    } catch (\Throwable $th) {}
+//                    $cekleveling    = Level::where('xp', '<=',$data->xp)->orderby('xp','desc')->first();
+//                    $datauser['user_id']          =   $data->id;
+//                    $datauser['country_name']     =   $position->countryName??null;
+//                    $datauser['country_code']     =   $position->countryName??null;
+//                    $datauser['region_code']      =   $position->regionCode??null;
+//                    $datauser['city_name']        =   $position->cityName??null;
+//                    $datauser['zip_code']         =   $position->zipCode??null;
+//                    $datauser['latitude']         =   $position->latitude??null;
+//                    $datauser['longitude']        =   $position->longitude??null;
+//                    $datauser['area_code']        =   $position->areaCode??null;
+//                    User_log::create($datauser);
+//
+//                    // Event Activity
+//                    event(new TriggerActivityEvent(6, $request->personal_number));
+//
+//                    // return
+//                    $data->tokens()->delete();
+//                    $kirim['id']                 =   $data->id;
+//                    $kirim['avatar_id']          =   $data->avatar_id;
+//                    $kirim['exp']                =   $data->xp;
+//                    $kirim['level_id']           =   $cekleveling->id;
+//                    $kirim['level_name']         =   $cekleveling->name;
+//                    $kirim['name']               =   $data->name;
+//                    $kirim['personal_number']    =   $data->personal_number;
+//                    $kirim['username']           =   $data->username;
+//                    $kirim['email']              =   $data->email;
+//                    $kirim['direktorat']         =   $data->divisis->id??11111111;
+//                    $kirim['divisi']             =   $data->divisis->id??11111111;
+//                    $kirim['last_login_at']      =   $data->last_login_at;
+//                    $kirim['role']               =   $data->role;
+//                    $kirim['login_at']           =   Carbon::now();
+//                    $kirim['token_bri']          =   $access_token??'dummy';
+//                    $kirim['token']              =   $data->createToken('web-token')->plainTextToken;
+//
+//                    return response()->json([
+//                        "status"    =>  1,
+//                        "data"      =>  $kirim
+//                    ],200);
+//                }else{
+//                    // -----------------------------
+//                    // tempat API Auth
+//                    // -----------------------------
+//                        // init hasil
+//                        $access_token = '';
+//                        // ---------------
+//                        $ch = curl_init();
+//                        $headers  = [
+//                                    'Content-Type: application/json',
+//                                    'Accept: application/json',
+//                                ];
+//                        $postData = [
+//                            'client_id'     => 'briknow',
+//                            'client_secret' => 'fa14f443b2433ecc7a3091942aff8c41fdc92a90',
+//                            'scope'         => 'public',
+//                            'grant_type'    => 'client_credentials',
+//                        ];
+//                        curl_setopt($ch, CURLOPT_URL,config('app.api_auth_bristar'));
+//                        curl_setopt($ch, CURLOPT_POST, 1);
+//                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
+//                        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+//                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+//                        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+//                        $result     = curl_exec ($ch);
+//                        $hasil      = json_decode($result);
+//                        if (isset($hasil->access_token)) {
+//                            $access_token = $hasil->access_token;
+//
+//                            // -----------------------------
+//                            // tempat API Detail User
+//                            // -----------------------------
+//                            $ch2 = curl_init();
+//                            $headers  = [
+//                                        'Content-Type: application/json',
+//                                        'Accept: application/json',
+//                                        "Authorization: Bearer $access_token",
+//                                    ];
+//                            $postData = [
+//                                'pernr'     => $request->personal_number,
+//                            ];
+//                            curl_setopt($ch2, CURLOPT_URL,config('app.api_detail_pekerja_bristar'));
+//                            curl_setopt($ch2, CURLOPT_POST, 1);
+//                            curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER , false);
+//                            curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($postData));
+//                            curl_setopt($ch2, CURLOPT_RETURNTRANSFER, 1);
+//                            curl_setopt($ch2, CURLOPT_HTTPHEADER, $headers);
+//                            $result2     = curl_exec ($ch2);
+//                            $hasil2      = json_decode($result2);
+//                            if (isset($hasil2->responseData->COST_CENTER)) {
+//                                $ResponseCostcenter = $hasil2->responseData->COST_CENTER;
+//                                $Responsenama       = $hasil2->responseData->NAMA;
+//                            }else{
+//                                $msg['message'] =   'Akun Tidak Ditemukan';
+//                                return response()->json([
+//                                    "status"    =>  0,
+//                                    "data"      =>  $msg
+//                                ],200);
+//                            }
+//                        }else{
+//                            $msg['message'] =   'Get User Failed';
+//                            return response()->json([
+//                                "status"    =>  0,
+//                                "data"      =>  $msg
+//                            ],200);
+//                        }
+//                    // -----------------------------
+//
+//                    //kita perlu hasil kembalian API Bristar disini untuk dilakukan REGISTRASI AKUN yg belum Terdaftar tapi Personal Number valid
+//                    //daftarkan jika kembalian LDAP tidak menemukan
+//                    $dataDivisi = Divisi::where('cost_center', $ResponseCostcenter)->first();
+//                    // add user
+//                    $new                    = new User();
+//                    $new->name              = $Responsenama??'User';
+//                    $new->personal_number   = $request->personal_number;
+//                    $new->username          = $Responsenama??'User';
+//                    $new->email             = $hitLDAP;
+//                    $new->role              = 0;
+//                    $new->divisi            = isset($dataDivisi->id)? $dataDivisi->id : 11111111;
+//                    $new->last_login_at     = Carbon::now();
+//                    $new->xp                = 0;
+//                    $new->avatar_id         = 1;
+//                    $new->save();
+//
+//                    //setelah save loginkan otomatis tanpa password
+//                    $cek_user_baru = User::where('personal_number',$request->personal_number)->first();
+//                    $datauser['ip_address']       =   request()->ip;
+//                    try {
+//                        $position = \Location::get($datauser['ip_address']);
+//                    } catch (\Throwable $th) {}
+//                    $cekleveling    = Level::where('xp', '<=',$cek_user_baru->xp)->orderby('xp','desc')->first();
+//                    $datauser['user_id']          =   $cek_user_baru->id;
+//                    $datauser['country_name']     =   $position->countryName??null;
+//                    $datauser['country_code']     =   $position->countryName??null;
+//                    $datauser['region_code']      =   $position->regionCode??null;
+//                    $datauser['city_name']        =   $position->cityName??null;
+//                    $datauser['zip_code']         =   $position->zipCode??null;
+//                    $datauser['latitude']         =   $position->latitude??null;
+//                    $datauser['longitude']        =   $position->longitude??null;
+//                    $datauser['area_code']        =   $position->areaCode??null;
+//                    User_log::create($datauser);
+//
+//                    // Event Activity
+//                    event(new TriggerActivityEvent(6, $cek_user_baru->personal_number));
+//
+//                    // return
+//                    $cek_user_baru->tokens()->delete();
+//                    $kirim['id']                 =   $cek_user_baru->id;
+//                    $kirim['avatar_id']          =   $cek_user_baru->avatar_id;
+//                    $kirim['exp']                =   $cek_user_baru->xp;
+//                    $kirim['level_id']           =   $cekleveling->id;
+//                    $kirim['level_name']         =   $cekleveling->name;
+//                    $kirim['name']               =   $cek_user_baru->name;
+//                    $kirim['personal_number']    =   $cek_user_baru->personal_number;
+//                    $kirim['username']           =   $cek_user_baru->username;
+//                    $kirim['email']              =   $cek_user_baru->email;
+//                    // $kirim['is_admin']           =   $cek_user_baru->is_admin;
+//                    $kirim['direktorat']         =   $cek_user_baru->divisis->id??11111111;
+//                    $kirim['divisi']             =   $cek_user_baru->divisis->id??11111111;
+//                    $kirim['last_login_at']      =   $cek_user_baru->last_login_at;
+//                    $kirim['role']               =   $cek_user_baru->role;
+//                    $kirim['login_at']           =   Carbon::now();
+//                    $kirim['token_bri']          =   $access_token;
+//                    $kirim['token']              =   $cek_user_baru->createToken('web-token')->plainTextToken;
+//
+//                    return response()->json([
+//                        "status"    =>  1,
+//                        "data"      =>  $kirim
+//                    ],200);
+//                }
+//            } else{
+//                $data['message']    =   'Personal Number / Password Salah';
+//                return response()->json([
+//                    'status'    =>  0,
+//                    'data'      =>  $data
+//                ],200);
+//            }
         } catch (\Throwable $th) {
             $data['message']    =   'Something Wrong';
             return response()->json([
@@ -503,7 +527,7 @@ class LoginController extends Controller
 	          curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 	          curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 	          curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));           
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             $result     = curl_exec ($ch);
             $hasil = json_decode($result);
@@ -513,7 +537,7 @@ class LoginController extends Controller
                     // ==================================
                     // get token BRI
                     // ==================================
-                        // init hasil 
+                        // init hasil
                         $access_token = '';
                         // // ---------------
                         $ch = curl_init();
@@ -554,22 +578,22 @@ class LoginController extends Controller
                         //loginkan tanpa password karna via bristar
                         // $data = User::where('personal_number', $hasil->profile->pernr)->first();
                         // save log
-                        $datauser['ip_address']       =   $tmp['ip'];   
+                        $datauser['ip_address']       =   $tmp['ip'];
                         try {
                             $position = \Location::get($datauser['ip_address']);
                         } catch (\Throwable $th) {}
                         $cekleveling    = Level::where('xp', '<=',$cek_user->xp)->orderby('xp','desc')->first();
-                        $datauser['user_id']          =   $cek_user->id;   
-                        $datauser['country_name']     =   $position->countryName??null;   
-                        $datauser['country_code']     =   $position->countryName??null;   
-                        $datauser['region_code']      =   $position->regionCode??null;   
-                        $datauser['city_name']        =   $position->cityName??null;   
-                        $datauser['zip_code']         =   $position->zipCode??null;   
-                        $datauser['latitude']         =   $position->latitude??null;   
-                        $datauser['longitude']        =   $position->longitude??null;   
-                        $datauser['area_code']        =   $position->areaCode??null;   
+                        $datauser['user_id']          =   $cek_user->id;
+                        $datauser['country_name']     =   $position->countryName??null;
+                        $datauser['country_code']     =   $position->countryName??null;
+                        $datauser['region_code']      =   $position->regionCode??null;
+                        $datauser['city_name']        =   $position->cityName??null;
+                        $datauser['zip_code']         =   $position->zipCode??null;
+                        $datauser['latitude']         =   $position->latitude??null;
+                        $datauser['longitude']        =   $position->longitude??null;
+                        $datauser['area_code']        =   $position->areaCode??null;
                         User_log::create($datauser);
-        
+
                         // Event Activity
                         event(new TriggerActivityEvent(6, $hasil->profile->pernr));
 
@@ -593,7 +617,7 @@ class LoginController extends Controller
                         $kirim['login_at']           =   Carbon::now();
                         $kirim['token_bri']          =   $access_token;
                         $kirim['token']              =   $cek_user->createToken('web-token')->plainTextToken;
-        
+
                         return response()->json([
                             "status"    =>  1,
                             "data"      =>  $kirim
@@ -615,25 +639,25 @@ class LoginController extends Controller
 
                         //setelah save loginkan otomatis tanpa password
                         $cek_user_baru = User::where('personal_number',$hasil->profile->pernr)->first();
-                        $datauser['ip_address']       =   $tmp['ip'];   
+                        $datauser['ip_address']       =   $tmp['ip'];
                         try {
                             $position = \Location::get($datauser['ip_address']);
                         } catch (\Throwable $th) {}
                         $cekleveling    = Level::where('xp', '<=',$cek_user_baru->xp)->orderby('xp','desc')->first();
-                        $datauser['user_id']          =   $cek_user_baru->id;   
-                        $datauser['country_name']     =   $position->countryName??null;   
-                        $datauser['country_code']     =   $position->countryName??null;   
-                        $datauser['region_code']      =   $position->regionCode??null;   
-                        $datauser['city_name']        =   $position->cityName??null;   
-                        $datauser['zip_code']         =   $position->zipCode??null;   
-                        $datauser['latitude']         =   $position->latitude??null;   
-                        $datauser['longitude']        =   $position->longitude??null;   
-                        $datauser['area_code']        =   $position->areaCode??null;   
+                        $datauser['user_id']          =   $cek_user_baru->id;
+                        $datauser['country_name']     =   $position->countryName??null;
+                        $datauser['country_code']     =   $position->countryName??null;
+                        $datauser['region_code']      =   $position->regionCode??null;
+                        $datauser['city_name']        =   $position->cityName??null;
+                        $datauser['zip_code']         =   $position->zipCode??null;
+                        $datauser['latitude']         =   $position->latitude??null;
+                        $datauser['longitude']        =   $position->longitude??null;
+                        $datauser['area_code']        =   $position->areaCode??null;
                         User_log::create($datauser);
-        
+
                         // Event Activity
                         event(new TriggerActivityEvent(6, $cek_user_baru->personal_number));
-        
+
                         // return
                         $cek_user_baru->tokens()->delete();
                         $kirim['id']                 =   $cek_user_baru->id;
@@ -652,7 +676,7 @@ class LoginController extends Controller
                         $kirim['login_at']           =   Carbon::now();
                         $kirim['token_bri']          =   $access_token;
                         $kirim['token']              =   $cek_user_baru->createToken('web-token')->plainTextToken;
-        
+
                         return response()->json([
                             "status"    =>  1,
                             "data"      =>  $kirim
@@ -687,21 +711,21 @@ class LoginController extends Controller
     public function LDAP($pn, $pwd){
         $opts_ldap = array(
             'http' => array(
-                'user_agent'=>'PHPSoapClient', 
+                'user_agent'=>'PHPSoapClient',
                 )
         );
 
         // $opts_ldap = array(
         //     'ssl' => array(
-        //         'ciphers'=>'RC4-SHA', 
-        //         'verify_peer'=>false, 
+        //         'ciphers'=>'RC4-SHA',
+        //         'verify_peer'=>false,
         //         'verify_peer_name'=>false
         //         )
         // );
 
         $params = array (
             'cache_wsdl'   =>  WSDL_CACHE_NONE,
-            'stream_context' => stream_context_create($opts_ldap) 
+            'stream_context' => stream_context_create($opts_ldap)
         );
 
         // $params = array (
@@ -711,16 +735,16 @@ class LoginController extends Controller
         //     'soap_version' => SOAP_1_2,
         //     'trace' => 1,
         //     'exceptions' => 1,
-        //     "connection_timeout" => 180, 
-        //     'stream_context' => stream_context_create($opts_ldap) 
+        //     "connection_timeout" => 180,
+        //     'stream_context' => stream_context_create($opts_ldap)
         // );
 
         $url = "https://wsuser.bri.co.id/beranda/ldap/ws/ws_adUser.php?wsdl";
-    
+
         try{
             $client = new SoapClient($url,$params);
             $response_ldap = $client->validate_aduser($pn,$pwd);
-            
+
             if ($response_ldap <> '') {
                 return $response_ldap;
             }else{

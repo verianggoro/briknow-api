@@ -87,6 +87,11 @@ use Illuminate\Support\Facades\Route;
 
             #Manage Lesson Learned
                 Route::get('/managelessonlearned', 'LessonLearnedController@getAll');
+
+            #Manage Communication Support
+                Route::get('/communicationinitiative/{type}', 'ManageComSupport@getAllComInitiative');
+                Route::post('/communicationinitiative/status/{status}/{id}', 'ManageComSupport@setStatus');
+                Route::delete('/communicationinitiative/delete/{id}', 'ManageComSupport@delete');
         #---
 
         #ALL USER

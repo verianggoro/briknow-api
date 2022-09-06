@@ -10,6 +10,7 @@ use App\Consultant;
 use App\ConsultantLog;
 use App\Divisi;
 use App\Keywords;
+use App\Lesson_learned;
 use App\Level;
 use App\Project;
 use App\Search_log;
@@ -576,6 +577,37 @@ class HomeController extends Controller
                 "status"    => '0',
                 "data"      => $data
             ]);
+        }
+    }
+
+    //get count lesson learned by tahap
+    public function countLessonByTahap($stage="default"){
+        try {
+            // setting 12 bulan kebelakang
+            $yesterday = date("Y-m-d", strtotime( '-0 days' ) );
+            $month = date("Y-m-d", strtotime( '-6 months' ) );
+
+            $query = Lesson_learned::whereBetween("created_at", [$month, $yesterday])
+                ->groupBy("tahap")
+                ->select(DB::raw("tahap, COUNT(tahap) as jml"))
+                ->get()
+                ->reverse()
+                ->values();
+
+            // return response()->json($temp);
+
+            $out['data'] = $query;
+
+            return response()->json([
+                "status"    =>  1,
+                "data" => $out
+            ],200);
+        } catch (\Throwable $th) {
+            $data['message']    =   'Something Went Wrong';
+            return response()->json([
+                "status"    =>  0,
+                "data"      =>  $data
+            ],200);
         }
     }
 }

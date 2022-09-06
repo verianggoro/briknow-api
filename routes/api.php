@@ -112,6 +112,7 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/profile/{pn}', 'HomeController@profileuser');
                 Route::get('/gamification', 'HomeController@gamification');
                 Route::post('/changeavatar' ,'HomeController@changeavatar');
+                Route::get('/cntlessonbytahap', 'HomeController@countLessonByTahap');
             #laporan
             Route::get('/proyektop5', 'LaporanController@proyektopfive');
             Route::get('/vendortop5', 'LaporanController@vendortopfive');
@@ -128,6 +129,9 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/projectpreview/{slug}','ProjectController@preview');
                 Route::get('/myproject','MyProjectController@index');
                 Route::post('/detailproject/{id}','DownloadController@detailproject');
+
+            #My Lesson Learned
+                Route::get('/mylessonlearned', 'MyLessonLearnedController@index');
             #Favorit
                 Route::get('/myfavorite','MyFavoriteController@getFavs');
                 Route::post('/bookmark_project/{id}','FavoriteProjectController@save');

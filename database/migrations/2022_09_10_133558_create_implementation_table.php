@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateCommunicationInitiativeTable extends Migration
+class CreateImplementationTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,25 @@ class CreateCommunicationInitiativeTable extends Migration
      */
     public function up()
     {
-        Schema::create('communication_initiative', function (Blueprint $table) {
+        Schema::create('implementation', function (Blueprint $table) {
             $table->id();
             $table->string("title");
             $table->string("slug");
-            $table->string("type_file");
-            $table->text('desc');
+            $table->foreignId('divisi_id');
+            $table->foreignId('project_managers_id');
             $table->string("status");
             $table->integer('views')->default(0);
             $table->string("thumbnail")->nullable();
+            $table->date('tanggal_mulai')->nullable();
+            $table->date('tanggal_selesai')->nullable();
+            $table->integer('is_restricted')->length(1);
+            $table->string('user_access')->nullable();
+            $table->text('desc_piloting')->nullable();
+            $table->text('desc_roll_out')->nullable();
+            $table->text('desc_sosialisasi')->nullable();
+            $table->text('project_link')->nullable();
+            $table->integer('user_checker');
+            $table->integer('user_signer');
             $table->integer('user_maker');
             $table->integer('updated_by')->nullable();
             $table->datetime('approve_at')->nullable();
@@ -35,8 +45,6 @@ class CreateCommunicationInitiativeTable extends Migration
             $table->datetime('deleted_at')->nullable();
             $table->integer('deleted_by')->nullable();
             $table->timestamps();
-
-            $table->engine = 'MyISAM';
         });
     }
 
@@ -47,6 +55,6 @@ class CreateCommunicationInitiativeTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('communication_initiative');
+        Schema::dropIfExists('implementation');
     }
 }

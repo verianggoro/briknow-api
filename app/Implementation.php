@@ -4,17 +4,28 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CommunicationInitiative extends Model {
-    protected $table = 'communication_initiative';
+class Implementation extends Model {
+    protected $table = 'implementation';
 
-    protected $fillable = ['id',
+    protected $fillable =
+        ['id',
         'title',
         'slug',
-        'type_file',
-        'desc',
+        'divisi_id',
+        'project_managers_id',
         'status',
         'views',
         'thumbnail',
+        'tanggal_mulai',
+        'tanggal_selesai',
+        'is_restricted',
+        'user_access',
+        'desc_piloting',
+        'desc_roll_out',
+        'desc_sosialisasi',
+        'project_link',
+        'user_checker',
+        'user_signer',
         'user_maker',
         'updated_by',
         'approve_at',

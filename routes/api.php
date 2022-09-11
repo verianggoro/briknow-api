@@ -90,8 +90,11 @@ use Illuminate\Support\Facades\Route;
 
             #Manage Communication Support
                 Route::get('/communicationinitiative/{type}', 'ManageComSupport@getAllComInitiative');
-                Route::post('/communicationinitiative/status/{status}/{id}', 'ManageComSupport@setStatus');
-                Route::delete('/communicationinitiative/delete/{id}', 'ManageComSupport@delete');
+                Route::post('/communicationinitiative/status/{status}/{id}', 'ManageComSupport@setStatusComInit');
+                Route::delete('/communicationinitiative/delete/{id}', 'ManageComSupport@deleteComInit');
+                Route::get('/implementation/{step}', 'ManageComSupport@getAllImplementation');
+                Route::post('/implementation/status/{status}/{id}', 'ManageComSupport@setStatusImplementation');
+                Route::delete('/implementation/delete/{id}', 'ManageComSupport@deleteImplementation');
         #---
 
         #ALL USER

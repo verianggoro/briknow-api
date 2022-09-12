@@ -251,4 +251,43 @@ class ManageComSupport extends Controller {
         }
     }
 
+    public function getPublishComInnitiave(Request $request, $type) {
+        try{
+            $model = (new CommunicationInitiative)->newQuery();
+
+            $limit = intval($request->get('limit', 10));
+            $offset = intval($request->get('offset', 0));
+            $order = 'asc';
+            if($request->get('order')) {
+                $order = $request->get('order');
+            }
+            if($request->get('sort')) {
+                $model->orderBy('created_at', $order);
+            }
+            if($request->get('search')) {
+                $model->where('title', 'like','%'.$request->get('search').'%');
+            }
+
+            $data = $model->where('type_file', $type)
+                ->where('status', '=', 'publish')->skip($offset)->take($limit)->get();
+
+            $count = count($data);
+            $countTotal = CommunicationInitiative::where('type_file', $type)->where('status', '!=', 'deleted')->count();
+
+            return response()->json([
+                "message"   => "GET Berhasil",
+                "status"    => 1,
+                "data"      => $data,
+                "total"     => $count,
+                "totalData" => $countTotal
+            ],200);
+        } catch (\Throwable $th){
+            $datas['message']    =   'GET Gagal';
+            return response()->json([
+                'status'    =>  0,
+                'data'      =>  $datas,
+                'error' => $th
+            ],200);
+        }
+    }
 }

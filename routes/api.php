@@ -95,6 +95,9 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/implementation/{step}', 'ManageComSupport@getAllImplementation');
                 Route::post('/implementation/status/{status}/{id}', 'ManageComSupport@setStatusImplementation');
                 Route::delete('/implementation/delete/{id}', 'ManageComSupport@deleteImplementation');
+
+            #Public Communication Support
+                Route::get('/communicationinitiative/publish/{type}', 'ManageComSupport@getPublishComInnitiave');
         #---
 
         #ALL USER

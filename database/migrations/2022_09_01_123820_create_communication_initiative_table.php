@@ -23,6 +23,7 @@ class CreateCommunicationInitiativeTable extends Migration
             $table->integer('views')->default(0);
             $table->string("thumbnail")->nullable();
             $table->integer('user_maker');
+            $table->integer('is_recommend');
             $table->integer('updated_by')->nullable();
             $table->datetime('approve_at')->nullable();
             $table->integer('approve_by')->nullable();

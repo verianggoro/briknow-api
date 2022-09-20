@@ -6,6 +6,7 @@ use App\Achievement;
 use App\Activity;
 use App\ActivityUser;
 use App\Avatar;
+use App\CommunicationInitiative;
 use App\Consultant;
 use App\ConsultantLog;
 use App\Divisi;
@@ -47,10 +48,7 @@ class HomeController extends Controller
             $suggest        = Keywords::select('nama', DB::raw('count(*) as num'))->groupby('nama')->orderby('num','desc')->limit(5)->get();
             $leaderboard    = User::orderby('xp','desc')->limit(10)->get();
 
-            Log::info("INI HASIL GET OWNER BE", [$getowner]);
-            Log::info("INI HASIL GET CONSULTANT BE", [$getconsultant]);
-            Log::info("INI HASIL GET SUGEST BE", [$suggest]);
-            Log::info("INI HASIL GET LEADERBOARD BE", [$leaderboard]);
+            $getRecomInnitiative   = CommunicationInitiative::where('is_recommend',1)->limit(6)->orderby('updated_at','DESC')->get();
 
             $levelling_user = [];
             foreach ($leaderboard as $l){
@@ -79,13 +77,27 @@ class HomeController extends Controller
                 $new[] = $obj;
             }
 
+            $classInni = [];
+            foreach ($getRecomInnitiative as $items){
+                $objInni    = new stdClass;
+                $objInni->thumbnail     = $items->thumbnail;
+                $objInni->slug          = $items->slug;
+                $objInni->view          = $items->views;
+                $objInni->nama          = $items->title;
+                $objInni->updated_at    = $items->updated_at;
+                $classInni[] = $objInni;
+            }
+
             $data['rekomendasi']    =   $new;
+            $data['cominitiative'] =   $classInni;
             $data['owner_project']  =   $getowner;
             $data['consultant']     =   $getconsultant;
             $data['suggest']        =   $suggest;
             $data['leaderboard']    =   $levelling_user;
 
-            return response()->json([
+            Log::info("INI HASIL GET OWNER BE", [$data]);
+
+        return response()->json([
                 "status"    => '1',
                 "data"      => $data
             ]);

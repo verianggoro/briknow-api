@@ -13,12 +13,12 @@ class Project extends Model
 
     protected $table = 'projects';
 
-    protected $dates = [    
-        'tanggal_mulai', 'tanggal_selesai'  
+    protected $dates = [
+        'tanggal_mulai', 'tanggal_selesai'
     ];
 
     protected $with = [
-        'project_managers','divisi','keywords', 'consultant','lesson_learned','comment','usermaker','userchecker','usersigner'
+        'project_managers','divisi','keywords', 'consultant','lesson_learned','comment','usermaker','userchecker','usersigner', 'communication_support'
     ];
 
     public function favorite_project(){
@@ -68,8 +68,12 @@ class Project extends Model
     public function userchecker(){
         return $this->belongsTo(User::class,'user_checker','personal_number');
     }
-    
+
     public function usersigner(){
         return $this->belongsTo(User::class,'user_signer','personal_number');
+    }
+
+    public function communication_support(){
+        return $this->hasMany(CommunicationSupport::class,'project_id');
     }
 }

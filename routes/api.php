@@ -96,6 +96,10 @@ use Illuminate\Support\Facades\Route;
                 Route::post('/implementation/status/{status}/{id}', 'ManageComSupport@setStatusImplementation');
                 Route::delete('/implementation/delete/{id}', 'ManageComSupport@deleteImplementation');
 
+                Route::get('/form_upload/content/{slug}', 'ManageComSupport@form_content');
+                Route::get('/form_upload/implementation/{slug}', 'ManageComSupport@form_implementation');
+                Route::post('/managecommunication/content/upload/{id}', 'ManageComSupport@create');
+
             #Public Communication Support
                 Route::get('/communicationinitiative/publish/{type}', 'ManageComSupport@getPublishComInnitiave');
         #---

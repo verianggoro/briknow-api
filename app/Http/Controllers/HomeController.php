@@ -7,6 +7,7 @@ use App\Activity;
 use App\ActivityUser;
 use App\Avatar;
 use App\CommunicationInitiative;
+use App\CommunicationSupport;
 use App\Consultant;
 use App\ConsultantLog;
 use App\Divisi;
@@ -48,7 +49,7 @@ class HomeController extends Controller
             $suggest        = Keywords::select('nama', DB::raw('count(*) as num'))->groupby('nama')->orderby('num','desc')->limit(5)->get();
             $leaderboard    = User::orderby('xp','desc')->limit(10)->get();
 
-            $getRecomInnitiative   = CommunicationInitiative::where('is_recommend',1)->limit(6)->orderby('updated_at','DESC')->get();
+            $getRecomInnitiative   = CommunicationSupport::where('is_recommend',1)->limit(6)->orderby('updated_at','DESC')->get();
 
             $levelling_user = [];
             foreach ($leaderboard as $l){

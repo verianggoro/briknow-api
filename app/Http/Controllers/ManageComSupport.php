@@ -2,17 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\CommunicationInitiative;
+use App\AttachFile;
+use App\CommunicationSupport;
+use App\Consultant;
+use App\Divisi;
 use App\Implementation;
+use App\Keywords;
+use App\Project;
+use App\TempUpload;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+
+use Validator;
 
 class ManageComSupport extends Controller {
 
     public function getAllComInitiative(Request $request, $type) {
         try{
-            $model = (new CommunicationInitiative)->newQuery();
+            $model = CommunicationSupport::with(['attach_file'])->where('communication_support.type_file', $type)->where('communication_support.status', '!=', 'deleted');
 
             $limit = intval($request->get('limit', 10));
             $offset = intval($request->get('offset', 0));
@@ -21,16 +30,17 @@ class ManageComSupport extends Controller {
                 $order = $request->get('order');
             }
             if($request->get('sort')) {
-                $model->orderBy('created_at', $order);
+                $model->orderBy('communication_support.created_at', $order);
             }
             if($request->get('search')) {
-                $model->where('title', 'like','%'.$request->get('search').'%');
+                $model->where('communication_support.title', 'like','%'.$request->get('search').'%');
             }
 
-            $data = $model->where('type_file', $type)->where('status', '!=', 'deleted')->skip($offset)->take($limit)->get();
+            $data = $model->skip($offset)->take($limit)->get();
 
             $count = count($data);
-            $countTotal = CommunicationInitiative::where('type_file', $type)->where('status', '!=', 'deleted')->count();
+            $countTotal = CommunicationSupport::join('projects', 'projects.id', '=', 'communication_support.project_id')
+                ->where('type_file', $type)->where('status', '!=', 'deleted')->count();
 
             return response()->json([
                 "message"   => "GET Berhasil",
@@ -59,7 +69,7 @@ class ManageComSupport extends Controller {
                     'approve_at' =>  $sekarang,
                     'approve_by' =>  Auth::User()->personal_number,
                 ];
-                /*DB::select(" update communication_initiative set `approve_at` = '$sekarang',
+                /*DB::select(" update communication_support set `approve_at` = '$sekarang',
                                      `approve_by` = '$user', `status` = '$status' where id = '$id' ");*/
             } else if ($status == 'publish') {
                 $updateDetails = [
@@ -82,7 +92,7 @@ class ManageComSupport extends Controller {
             }
 
             $updateDetails['updated_by'] = Auth::User()->personal_number;
-            CommunicationInitiative::where('id', $id)
+            CommunicationSupport::where('id', $id)
                 ->update($updateDetails);
 
             $data['message']    =   ucwords($status).' Proyek Berhasil.';
@@ -105,7 +115,7 @@ class ManageComSupport extends Controller {
         try {
             $sekarang = Carbon::now();
 
-            CommunicationInitiative::where('id', $id)
+            CommunicationSupport::where('id', $id)
                 ->update(['status' => 'deleted', 'deleted_at' => $sekarang,
                     'deleted_by' => Auth::User()->personal_number, 'updated_by' => Auth::User()->personal_number]);
 
@@ -187,7 +197,7 @@ class ManageComSupport extends Controller {
                     'approve_at' =>  $sekarang,
                     'approve_by' =>  Auth::User()->personal_number,
                 ];
-                /*DB::select(" update communication_initiative set `approve_at` = '$sekarang',
+                /*DB::select(" update communication_support set `approve_at` = '$sekarang',
                                      `approve_by` = '$user', `status` = '$status' where id = '$id' ");*/
             } else if ($status == 'publish') {
                 $updateDetails = [
@@ -251,9 +261,223 @@ class ManageComSupport extends Controller {
         }
     }
 
+    public function form_content($slug = "*") {
+        $type_file = (object) array(
+            array("value" => "article", "name" => "Article"),
+            array("value" => "logo", "name" => "Icon, Logo, Maskot BRIVO"),
+            array("value" => "infographics", "name" => "Infographics"),
+            array("value" => "transformation", "name" => "Transformation Journey"),
+            array("value" => "podcast", "name" => "Podcast"),
+            array("value" => "video", "name" => "Video Content"),
+            array("value" => "instagram", "name" => "Instagram Content"),
+        );
+
+        try {
+            $data   = [];
+
+            $project = Project::get();
+
+            if ($slug == "*") {
+                $datas     =   [];
+            } else {
+                $datas = CommunicationSupport::with(['attach_file' => function($q) {
+                    $q->where('tipe', 'content');
+                }])->leftJoin('projects', 'projects.id', '=', 'communication_support.project_id')
+                    ->where('communication_support.slug', $slug)
+                    ->select(DB::raw("communication_support.*, projects.nama"))->first();
+            }
+
+            $data['project'] = $project;
+            $data['type_file'] = $type_file;
+            $data['data'] = $datas;
+
+            return response()->json([
+                "status"    => '1',
+                "data"      => $data
+            ],200);
+        } catch (\Throwable $th) {
+            $data['message']    =   'Something Went Wrong';
+            return response()->json([
+                "status"    =>  0,
+                "data"      =>  $data
+            ],200);
+        }
+    }
+
+    public function form_implementation($slug = "*") {
+        try {
+            $data   = [];
+
+            if ($slug == "*") {
+                $datas     =   [];
+            } else {
+                $datas = Implementation::where('slug', $slug)->first();
+            }
+
+            $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
+            $query            = Divisi::get();
+            $tags             = keywords::distinct()->get(['nama']);
+            $consultant       = Consultant::get();
+            // $checker= User::where('divisi',Auth::User()->divisi)->where('role','1')->get();
+            // $signer = User::where('divisi',Auth::User()->divisi)->where('role','2')->get();
+
+            $data['direktorat'] = $querydirektorat;
+            $data['divisi'] = $query;
+            $data['tags'] = $tags;
+            $data['consultant'] = $consultant;
+            $data['data'] = $datas;
+            // $data['checker'] = $checker;
+            // $data['signer'] = $signer;
+
+            return response()->json([
+                "status"    => '1',
+                "data"      => $data
+            ],200);
+        } catch (\Throwable $th) {
+            $data['message']    =   'Something Went Wrong';
+            return response()->json([
+                "status"    =>  0,
+                "data"      =>  $data
+            ],200);
+        }
+    }
+
+    public function create($id = "*") {
+        $validator = Validator::make(request()->all(), [
+            'thumbnail'         => "required",
+            'title'             => "required",
+            'file_type'         => 'required',
+            'deskripsi'         => 'required',
+            'attach'            => 'required',
+        ]);
+
+        // handle jika tidak terpenuhi
+        if ($validator->fails()) {
+            $data_error['message'] = $validator->errors();
+            $data_error['error_code'] = 1; //error
+            return response()->json([
+                'status' => 0,
+                'data'  => $data_error
+            ], 400);
+        }
+
+        // date
+        date_default_timezone_set('Asia/Jakarta');
+        $now = Carbon::now();
+        $waktu = $now->year."".$now->month."".$now->day."".$now->hour."".$now->minute."".$now->second;
+
+        try {
+            if ($id == "*") {
+                $create = CommunicationSupport::create([
+                    'project_id' => request()->project_id,
+                    'title' => request()->title,
+                    'slug' => $waktu."-".\Str::slug(request()->title),
+                    'type_file' => request()->file_type,
+                    'desc' => request()->deskripsi,
+                    'status' => 'unpublish',
+                    'thumbnail' => request()->thumbnail,
+                    'user_maker' => Auth::User()->personal_number,
+                ]);
+
+                // attach
+                $tampung_attach     =   request()->attach;
+                if (isset($tampung_attach)) {
+                    for ($i=0; $i < count($tampung_attach) ; $i++) {
+                        $cek = TempUpload::where('path',$tampung_attach[$i])->first();
+                        if($cek){
+                            $attach['com_id']       = $create->id;
+                            $attach['tipe']         = $create->type_file;
+                            $attach['nama']         = $cek->nama_file;
+                            $attach['jenis_file']   = $cek->type;
+                            $attach['url_file']     = $cek->path;
+                            $attach['size']         = $cek->size;
+                            AttachFile::create($attach);
+
+                            $cek->delete();
+                        }
+                    }
+                }
+            } else {
+                $upd    =   CommunicationSupport::where('id',$id)->first();
+                if (!$upd) {
+                    $data_error['message'] = 'Project Not Found';
+                    $data_error['error_code'] = 1; //error
+                    return response()->json([
+                        'status' => 0,
+                        'data'  => $data_error
+                    ], 400);
+                }
+
+                $data_new['project_id']     = request()->project_id;
+                $data_new['title']          = request()->title;
+                $data_new['slug']           = $waktu."-".\Str::slug(request()->title);
+                $data_new['desc']           = request()->deskripsi;
+                $data_new['thumbnail']      = request()->thumbnail;
+                $data_new['updated_by']     = Auth::User()->personal_number;
+
+                $upd->update($data_new);
+
+                $tampung_attach     =   request()->attach;
+                if (isset($tampung_attach)) {
+                    AttachFile::whereNotIn('url_file', $tampung_attach)->where('com_id',$id)->delete();
+                }
+
+                if (isset($tampung_attach)) {
+                    for ($i=0; $i < count($tampung_attach) ; $i++) {
+                        $cek = TempUpload::where('path',$tampung_attach[$i])->first();
+                        if($cek){
+                            $attach['com_id']       = $id;
+                            $attach['tipe']         = "content";
+                            $attach['nama']         = $cek->nama_file;
+                            $attach['jenis_file']   = $cek->type;
+                            $attach['url_file']     = $cek->path;
+                            $attach['size']         = $cek->size;
+                            AttachFile::create($attach);
+
+                            $cek->delete();
+                        }
+                        /*if($cek){
+                            AttachFile::updateOrCreate([
+                                'url_file' => $cek->path
+                            ],
+                                [
+                                    'com_id' => $id,
+                                    'tipe' => $upd->type_file,
+                                    'nama' => $cek->nama_file,
+                                    'jenis_file' => $cek->type,
+                                    'size' => $cek->size,
+                                ]);
+
+                            $cek->delete();
+                        }*/
+                    }
+                }
+            }
+
+            $temp = TempUpload::where('path',request()->thumbnail)->first();
+            if ($temp) {
+                $temp->delete();
+            }
+
+            $data['message']    =   'Save Data Berhasil';
+            return response()->json([
+                "status"    =>  1,
+                "data"      => $data
+            ],200);
+        } catch (\Throwable $th) {
+            $data['message']    =   'Save Data Gagal, Mohon Coba Lagi';
+            $data['error_code'] = 0; //error
+            return response()->json([
+                'status'    =>  0,
+                'data'      =>  $data,
+                'error'     =>  $th
+            ],200);
+        }
+    }
+
     public function getPublishComInnitiave(Request $request, $type) {
         try{
-            $model = (new CommunicationInitiative)->newQuery();
+            $model = (new CommunicationSupport)->newQuery();
 
             $limit = intval($request->get('limit', 10));
             $offset = intval($request->get('offset', 0));
@@ -272,7 +496,7 @@ class ManageComSupport extends Controller {
                 ->where('status', '=', 'publish')->skip($offset)->take($limit)->get();
 
             $count = count($data);
-            $countTotal = CommunicationInitiative::where('type_file', $type)->where('status', '!=', 'deleted')->count();
+            $countTotal = CommunicationSupport::where('type_file', $type)->where('status', '=', 'publish')->count();
 
             return response()->json([
                 "message"   => "GET Berhasil",

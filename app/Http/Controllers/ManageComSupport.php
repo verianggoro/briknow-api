@@ -41,13 +41,175 @@ class ManageComSupport extends Controller {
             $data = $model->skip($offset)->take($limit)->get();
 
             $count = count($data);
-            $countTotal = CommunicationSupport::join('projects', 'projects.id', '=', 'communication_support.project_id')
+            $countTotal = CommunicationSupport::with(['attach_file'])
                 ->where('type_file', $type)->where('status', '!=', 'deleted')->count();
 
             return response()->json([
                 "message"   => "GET Berhasil",
                 "status"    => 1,
                 "data"      => $data,
+                "total"     => $count,
+                "totalData" => $countTotal
+            ],200);
+        } catch (\Throwable $th){
+            $datas['message']    =   'GET Gagal';
+            return response()->json([
+                'status'    =>  0,
+                'data'      =>  $datas,
+                'error' => $th
+            ],200);
+        }
+    }
+
+    public function getAllStrategic(Request $request) {
+        try{
+//            $model = CommunicationSupport::with(['attach_file'])->where('communication_support.type_file', $type)->where('communication_support.status', '!=', 'deleted');
+            /*$model = Project::join('communication_support', 'projects.id', '=', 'communication_support.project_id')
+                ->where('communication_support.status', '!=', 'deleted');*/
+            $model = Project::with(['communication_support' => function($q) {
+                $q->where('status', '!=', 'deleted');
+            }])->whereIn('id', function ($query) {
+                $query->select('project_id')
+                    ->from(with(new CommunicationSupport)->getTable())
+                    ->where('status', '!=', 'deleted');
+            });
+
+            $limit = intval($request->get('limit', 10));
+            $offset = intval($request->get('offset', 0));
+            $order = 'asc';
+            if($request->get('order')) {
+                $order = $request->get('order');
+            }
+            if($request->get('sort')) {
+                $model->orderBy('projects.created_at', $order);
+            }
+            if($request->get('search')) {
+                $model->where('projects.nama', 'like','%'.$request->get('search').'%');
+            }
+
+            $data = $model->skip($offset)->take($limit)->get();
+
+            $count = count($data);
+            $countTotal = Project::with(['communication_support' => function($q) {
+                $q->where('status', '!=', 'deleted');
+            }])->whereIn('id', function ($query) {
+                $query->select('project_id')
+                    ->from(with(new CommunicationSupport)->getTable())
+                    ->where('status', '!=', 'deleted');
+            })->count();
+
+            return response()->json([
+                "message"   => "GET Berhasil",
+                "status"    => 1,
+                "data"      => $data,
+                "total"     => $count,
+                "totalData" => $countTotal
+            ],200);
+        } catch (\Throwable $th){
+            $datas['message']    =   'GET Gagal';
+            return response()->json([
+                'status'    =>  0,
+                'data'      =>  $datas,
+                'error' => $th
+            ],200);
+        }
+    }
+
+    public function getStrategicByProject($slug) {
+        try{
+//            $model = CommunicationSupport::with(['attach_file'])->where('communication_support.type_file', $type)->where('communication_support.status', '!=', 'deleted');
+            /*$model = Project::join('communication_support', 'projects.id', '=', 'communication_support.project_id')
+                ->where('communication_support.status', '!=', 'deleted');*/
+            $type_list = [
+                ["id" => "article", "name" => "Articles"],
+                ["id" => "logo", "name" => "Icon, Logo, Maskot BRIVO"],
+                ["id" => "infographics", "name" => "Infographics"],
+                ["id" => "transformation", "name" => "Transformation Journey"],
+                ["id" => "podcast", "name" => "Podcast"],
+                ["id" => "video", "name" => "Video Content"],
+                ["id" => "instagram", "name" => "Instagram Content"],
+            ];
+            $project        = Project::where('slug',$slug)->first();
+            if (!$project) {
+                $data_error['message'] = 'Proyek tidak ditemukan!';
+                $data_error['error_code'] = 1; //error
+                return response()->json([
+                    'status' => 0,
+                    'data'  => $data_error
+                ], 400);
+            }
+            $data['project'] = $project;
+            $types = CommunicationSupport::where('project_id', $project->id)->select('type_file')->distinct()->get();
+
+            $type_file = [];
+            foreach($types as $r){
+                $key = array_search($r->type_file, array_column($type_list, 'id'));
+                $datas = CommunicationSupport::where('project_id', $project->id)->where('type_file', $r->type_file)->take(5)->get();
+                $datas_total = CommunicationSupport::where('project_id', $project->id)->where('type_file', $r->type_file)->count();
+
+                $type_list[$key]['content'] = $datas;
+                $type_list[$key]['total_content'] = $datas_total;
+                $type_file[] = $type_list[$key];
+            }
+            $data['type'] = $type_file;
+
+            return response()->json([
+                "message"   => "GET Berhasil",
+                "status"    => 1,
+                "data"      => $data,
+            ],200);
+        } catch (\Throwable $th){
+            $datas['message']    =   'GET Gagal';
+            return response()->json([
+                'status'    =>  0,
+                'data'      =>  $datas,
+                'error' => $th
+            ],200);
+        }
+    }
+
+    public function getStrategicByProjectAndType(Request $request, $slug, $type) {
+        try{
+            $project        = Project::where('slug',$slug)->first();
+            if (!$project) {
+                $data_error['message'] = 'Proyek tidak ditemukan!';
+                $data_error['error_code'] = 1; //error
+                return response()->json([
+                    'status' => 0,
+                    'data'  => $data_error
+                ], 400);
+            }
+            $model = CommunicationSupport::with(['attach_file'])
+                ->where('communication_support.type_file', $type)
+                ->where('project_id', $project->id)
+                ->where('communication_support.status', '!=', 'deleted');
+
+            $limit = intval($request->get('limit', 10));
+            $offset = intval($request->get('offset', 0));
+            $order = 'asc';
+            if($request->get('order')) {
+                $order = $request->get('order');
+            }
+            if($request->get('sort')) {
+                $model->orderBy('communication_support.created_at', $order);
+            }
+            if($request->get('search')) {
+                $model->where('communication_support.title', 'like','%'.$request->get('search').'%');
+            }
+
+            $data = $model->skip($offset)->take($limit)->get();
+
+            $count = count($data);
+            $countTotal = CommunicationSupport::with(['attach_file'])
+                ->where('type_file', $type)
+                ->where('project_id', $project->id)
+                ->where('status', '!=', 'deleted')->count();
+
+            return response()->json([
+                "message"   => "GET Berhasil",
+                "status"    => 1,
+                "data"      => $data,
+                "project"   => $project,
                 "total"     => $count,
                 "totalData" => $countTotal
             ],200);
@@ -167,7 +329,7 @@ class ManageComSupport extends Controller {
                     'message'   => 'Tahap Implementasi tidak ditemukan'
                 ],200);
             }
-            $data = $model->where('status', '!=', 'deleted')->orderBy('tanggal_mulai', $order)->skip($offset)->take($limit)->get();
+            $data = $model->where('status', '!=', 'deleted')->orderBy('created_at', $order)->skip($offset)->take($limit)->get();
 
             $count = count($data);
             $countTotal = $modelCount->where('status', '!=', 'deleted')->count();

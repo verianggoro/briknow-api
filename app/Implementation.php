@@ -23,7 +23,7 @@ class Implementation extends Model {
         'desc_piloting',
         'desc_roll_out',
         'desc_sosialisasi',
-        'project_link',
+        'project_id',
         'user_checker',
         'user_signer',
         'user_maker',

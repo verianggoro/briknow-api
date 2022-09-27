@@ -6,7 +6,6 @@ use App\Achievement;
 use App\Activity;
 use App\ActivityUser;
 use App\Avatar;
-use App\CommunicationInitiative;
 use App\CommunicationSupport;
 use App\Consultant;
 use App\ConsultantLog;

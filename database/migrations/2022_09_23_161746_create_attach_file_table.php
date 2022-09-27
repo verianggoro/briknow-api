@@ -15,7 +15,8 @@ class CreateAttachFileTable extends Migration
     {
         Schema::create('attach_file', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('com_id');
+            $table->foreignId('com_id')->nullable();
+            $table->foreignId('implementation_id')->nullable();
             $table->string('tipe');
             $table->string('nama');
             $table->string('jenis_file',10);

@@ -98,7 +98,8 @@ use Illuminate\Support\Facades\Route;
 
                 Route::get('/form_upload/content/{slug}', 'ManageComSupport@form_content');
                 Route::get('/form_upload/implementation/{slug}', 'ManageComSupport@form_implementation');
-                Route::post('/managecommunication/content/upload/{id}', 'ManageComSupport@create');
+                Route::post('/managecommunication/content/upload/{id}', 'ManageComSupport@createContent');
+                Route::post('/managecommunication/implementation/upload/{id}', 'ManageComSupport@createImplementation');
 
             #Public Communication Support
                 Route::get('/communicationinitiative/publish/{type}', 'ManageComSupport@getPublishComInnitiave');

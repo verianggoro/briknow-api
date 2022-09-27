@@ -9,6 +9,7 @@ class AttachFile extends Model {
 
     protected $fillable = ['id',
         'com_id',
+        'implementation_id',
         'tipe',
         'nama',
         'jenis_file',

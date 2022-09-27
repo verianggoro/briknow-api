@@ -24,12 +24,12 @@ class CreateImplementationTable extends Migration
             $table->string("thumbnail")->nullable();
             $table->date('tanggal_mulai')->nullable();
             $table->date('tanggal_selesai')->nullable();
-            $table->integer('is_restricted')->length(1);
+            $table->integer('is_restricted')->default(0);
             $table->string('user_access')->nullable();
             $table->text('desc_piloting')->nullable();
             $table->text('desc_roll_out')->nullable();
             $table->text('desc_sosialisasi')->nullable();
-            $table->text('project_link')->nullable();
+            $table->text('project_id')->nullable();
             $table->integer('user_checker');
             $table->integer('user_signer');
             $table->integer('user_maker');

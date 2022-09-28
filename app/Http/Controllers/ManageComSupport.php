@@ -41,15 +41,17 @@ class ManageComSupport extends Controller {
             $data = $model->skip($offset)->take($limit)->get();
 
             $count = count($data);
-            $countTotal = CommunicationSupport::with(['attach_file'])
+            $countTotal = $model->count();
+            $countNotFilter = CommunicationSupport::with(['attach_file'])
                 ->where('type_file', $type)->where('status', '!=', 'deleted')->count();
 
             return response()->json([
                 "message"   => "GET Berhasil",
                 "status"    => 1,
                 "data"      => $data,
-                "total"     => $count,
-                "totalData" => $countTotal
+                "totalRow"  => $count,
+                "total"     => $countTotal,
+                "totalData" => $countNotFilter
             ],200);
         } catch (\Throwable $th){
             $datas['message']    =   'GET Gagal';
@@ -69,7 +71,7 @@ class ManageComSupport extends Controller {
             $model = Project::with(['communication_support' => function($q) {
                 $q->where('status', '!=', 'deleted');
             }])->whereIn('id', function ($query) {
-                $query->select('project_id')
+                $query->select('project_id')->distinct('project_id')
                     ->from(with(new CommunicationSupport)->getTable())
                     ->where('status', '!=', 'deleted');
             });
@@ -90,10 +92,11 @@ class ManageComSupport extends Controller {
             $data = $model->skip($offset)->take($limit)->get();
 
             $count = count($data);
-            $countTotal = Project::with(['communication_support' => function($q) {
+            $countTotal = $model->count();
+            $countNotFilter = Project::with(['communication_support' => function($q) {
                 $q->where('status', '!=', 'deleted');
             }])->whereIn('id', function ($query) {
-                $query->select('project_id')
+                $query->select('project_id')->distinct('project_id')
                     ->from(with(new CommunicationSupport)->getTable())
                     ->where('status', '!=', 'deleted');
             })->count();
@@ -102,8 +105,9 @@ class ManageComSupport extends Controller {
                 "message"   => "GET Berhasil",
                 "status"    => 1,
                 "data"      => $data,
-                "total"     => $count,
-                "totalData" => $countTotal
+                "totalRow"  => $count,
+                "total"     => $countTotal,
+                "totalData" => $countNotFilter
             ],200);
         } catch (\Throwable $th){
             $datas['message']    =   'GET Gagal';
@@ -139,13 +143,16 @@ class ManageComSupport extends Controller {
                 ], 400);
             }
             $data['project'] = $project;
-            $types = CommunicationSupport::where('project_id', $project->id)->select('type_file')->distinct()->get();
+            $types = CommunicationSupport::where('project_id', $project->id)
+                ->where('status', '!=', 'deleted')->select('type_file')->distinct()->get();
 
             $type_file = [];
             foreach($types as $r){
                 $key = array_search($r->type_file, array_column($type_list, 'id'));
-                $datas = CommunicationSupport::where('project_id', $project->id)->where('type_file', $r->type_file)->take(5)->get();
-                $datas_total = CommunicationSupport::where('project_id', $project->id)->where('type_file', $r->type_file)->count();
+                $datas = CommunicationSupport::where('project_id', $project->id)
+                    ->where('status', '!=', 'deleted')->where('type_file', $r->type_file)->take(5)->get();
+                $datas_total = CommunicationSupport::where('project_id', $project->id)
+                    ->where('status', '!=', 'deleted')->where('type_file', $r->type_file)->count();
 
                 $type_list[$key]['content'] = $datas;
                 $type_list[$key]['total_content'] = $datas_total;
@@ -200,7 +207,8 @@ class ManageComSupport extends Controller {
             $data = $model->skip($offset)->take($limit)->get();
 
             $count = count($data);
-            $countTotal = CommunicationSupport::with(['attach_file'])
+            $countTotal = $model->count();
+            $countNotFilter = CommunicationSupport::with(['attach_file'])
                 ->where('type_file', $type)
                 ->where('project_id', $project->id)
                 ->where('status', '!=', 'deleted')->count();
@@ -210,8 +218,9 @@ class ManageComSupport extends Controller {
                 "status"    => 1,
                 "data"      => $data,
                 "project"   => $project,
-                "total"     => $count,
-                "totalData" => $countTotal
+                "totalRow"  => $count,
+                "total"     => $countTotal,
+                "totalData" => $countNotFilter
             ],200);
         } catch (\Throwable $th){
             $datas['message']    =   'GET Gagal';
@@ -299,14 +308,17 @@ class ManageComSupport extends Controller {
 
     public function getAllImplementation(Request $request, $step) {
         try{
-            $model = (new Implementation)->newQuery();
-            $modelCount = (new Implementation)->newQuery();
+            $model = Implementation::where('status', '!=', 'deleted');
+            $modelCount = Implementation::where('status', '!=', 'deleted');
 
             $limit = intval($request->get('limit', 10));
             $offset = intval($request->get('offset', 0));
             $order = 'asc';
             if($request->get('order')) {
                 $order = $request->get('order');
+            }
+            if($request->get('sort')) {
+                $model->orderBy('created_at', $order);
             }
             if($request->get('search')) {
                 $model->where('title', 'like','%'.$request->get('search').'%');
@@ -329,17 +341,19 @@ class ManageComSupport extends Controller {
                     'message'   => 'Tahap Implementasi tidak ditemukan'
                 ],200);
             }
-            $data = $model->where('status', '!=', 'deleted')->orderBy('created_at', $order)->skip($offset)->take($limit)->get();
+            $data = $model->skip($offset)->take($limit)->get();
 
             $count = count($data);
-            $countTotal = $modelCount->where('status', '!=', 'deleted')->count();
+            $countTotal = $model->count();
+            $countNotFilter = $modelCount->count();
 
             return response()->json([
                 "message"   => "GET Berhasil",
                 "status"    => 1,
                 "data"      => $data,
-                "total"     => $count,
-                "totalData" => $countTotal
+                "totalRow"  => $count,
+                "total"     => $countTotal,
+                "totalData" => $countNotFilter
             ],200);
         } catch (\Throwable $th){
             $datas['message']    =   'GET Gagal';

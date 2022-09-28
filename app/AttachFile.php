@@ -20,4 +20,8 @@ class AttachFile extends Model {
     public function communication_support(){
         return $this->belongsTo(CommunicationSupport::class, 'id');
     }
+
+    public function implementation(){
+        return $this->belongsTo(Implementation::class, 'id');
+    }
 }

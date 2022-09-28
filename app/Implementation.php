@@ -39,4 +39,10 @@ class Implementation extends Model {
         'deleted_at',
         'deleted_by'];
 
+    protected $with = ['attach_file'];
+
+    public function attach_file() {
+        return $this->hasMany(AttachFile::class, 'implementation_id');
+    }
+
 }

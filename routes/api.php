@@ -106,6 +106,12 @@ use Illuminate\Support\Facades\Route;
 
             #Public Communication Support
                 Route::get('/communicationinitiative/publish/{type}', 'ManageComSupport@getPublishComInnitiave');
+                Route::get('/get/communicationinitiative/publish/{type}', 'CommunicationSupportController@getCommunicationInitiative');
+                Route::get('/get/strategic/publish', 'CommunicationSupportController@getStrategic');
+                Route::get('/get/strategic/publish/{slug}', 'CommunicationSupportController@getStrategicByProject');
+                Route::get('/get/strategic/publish/{slug}/{type}', 'CommunicationSupportController@getStrategicByProjectAndType');
+                Route::get('/get/implementation/all/publish/{step}', 'CommunicationSupportController@getAllImplementation');
+                Route::get('/get/implementation/publish/{slug}', 'CommunicationSupportController@getOneImplementation');
         #---
 
         #ALL USER

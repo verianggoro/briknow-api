@@ -16,11 +16,14 @@ class CreateCommunicationSupportTable extends Migration
         Schema::create('communication_support', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->nullable();
+            $table->foreignId('divisi_id')->nullable();
             $table->string("title");
             $table->string("slug");
             $table->string("type_file");
             $table->text('desc');
             $table->string("status");
+            $table->date('tanggal_mulai')->nullable();
+            $table->date('tanggal_selesai')->nullable();
             $table->integer('views')->default(0);
             $table->string("thumbnail")->nullable();
             $table->integer('is_recommend')->default(0);

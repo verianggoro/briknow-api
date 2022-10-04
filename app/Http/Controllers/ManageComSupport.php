@@ -465,7 +465,12 @@ class ManageComSupport extends Controller {
                     ->select(DB::raw("communication_support.*, projects.nama"))->first();
             }
 
+            $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
+            $query            = Divisi::get();
+
             $data['project'] = $project;
+            $data['direktorat'] = $querydirektorat;
+            $data['divisi'] = $query;
             $data['type_file'] = $type_file;
             $data['data'] = $datas;
 
@@ -489,7 +494,18 @@ class ManageComSupport extends Controller {
             if ($slug == "*") {
                 $datas     =   [];
             } else {
-                $datas = Implementation::where('slug', $slug)->first();
+                $datas = Implementation::leftJoin('projects', 'projects.id', '=', 'implementation.project_id')
+                    ->where('implementation.slug', $slug)
+                    ->select(DB::raw("implementation.*, projects.nama"))->first();
+                if ($datas->is_restricted == 1) {
+                    $user_access = explode(",",$datas->user_access);
+                    $access = [];
+                    foreach($user_access as $u){
+                        $user = User::where('personal_number', $u)->first();
+                        $access[] = $user;
+                    }
+                    $datas['user'] = $access;
+                }
             }
 
             $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
@@ -527,6 +543,8 @@ class ManageComSupport extends Controller {
             'file_type'         => 'required',
             'deskripsi'         => 'required',
             'attach'            => 'required',
+            'divisi'            => 'required',
+            'tgl_mulai'     => 'required',
         ]);
 
         // handle jika tidak terpenuhi
@@ -548,11 +566,14 @@ class ManageComSupport extends Controller {
             if ($id == "*") {
                 $create = CommunicationSupport::create([
                     'project_id' => request()->project_id,
+                    'divisi_id' => request()->divisi,
                     'title' => request()->title,
                     'slug' => $waktu."-".\Str::slug(request()->title),
                     'type_file' => request()->file_type,
                     'desc' => request()->deskripsi,
                     'status' => 'unpublish',
+                    'tanggal_mulai'         => request()->tgl_mulai,
+                    'tanggal_selesai'       => request()->tgl_selesai,
                     'thumbnail' => request()->thumbnail,
                     'user_maker' => Auth::User()->personal_number,
                 ]);
@@ -587,9 +608,12 @@ class ManageComSupport extends Controller {
                 }
 
                 $data_new['project_id']     = request()->project_id;
+                $data_new['divisi_id']           = request()->divisi;
                 $data_new['title']          = request()->title;
                 $data_new['slug']           = $waktu."-".\Str::slug(request()->title);
                 $data_new['desc']           = request()->deskripsi;
+                $data_new['tanggal_mulai']           = request()->tgl_mulai;
+                $data_new['tanggal_selesai']           = request()->tgl_selesai;
                 $data_new['thumbnail']      = request()->thumbnail;
                 $data_new['updated_by']     = Auth::User()->personal_number;
 
@@ -724,10 +748,13 @@ class ManageComSupport extends Controller {
                 }
             }
 
-            $create_pm   = Project_managers::create([
-                'nama'      =>  request()->pm,
-                'email'     =>  request()->emailpm,
-            ]);
+            $create_pm    =   Project_managers::where('nama',request()->pm)->where('email',request()->emailpm)->first();
+            if (!$create_pm) {
+                $create_pm   = Project_managers::create([
+                    'nama'      =>  request()->pm,
+                    'email'     =>  request()->emailpm,
+                ]);
+            }
 
             // restricted
             if (request()->restricted == null || request()->restricted == "0") {
@@ -835,7 +862,7 @@ class ManageComSupport extends Controller {
 
                 $data_new['title']          = request()->nama_project;
                 $data_new['slug']           = $waktu."-".\Str::slug(request()->nama_project);
-                $data_new['divisi_id']           = request()->divisi_id;
+                $data_new['divisi_id']           = request()->divisi;
                 $data_new['project_managers_id']      = $cek_pm->id;
                 $data_new['thumbnail']           = request()->thumbnail;
                 $data_new['tanggal_mulai']           = request()->tgl_mulai;

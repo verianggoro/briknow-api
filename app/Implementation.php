@@ -39,10 +39,26 @@ class Implementation extends Model {
         'deleted_at',
         'deleted_by'];
 
-    protected $with = ['attach_file'];
+    protected $with = ['attach_file', 'project_managers', 'divisi', 'userchecker', 'usersigner'];
 
     public function attach_file() {
         return $this->hasMany(AttachFile::class, 'implementation_id');
+    }
+
+    public function project_managers(){
+        return $this->belongsTo(Project_managers::class,'project_managers_id');
+    }
+
+    public function divisi(){
+        return $this->belongsTo(Divisi::class,'divisi_id');
+    }
+
+    public function userchecker(){
+        return $this->belongsTo(User::class,'user_checker','personal_number');
+    }
+
+    public function usersigner(){
+        return $this->belongsTo(User::class,'user_signer','personal_number');
     }
 
 }

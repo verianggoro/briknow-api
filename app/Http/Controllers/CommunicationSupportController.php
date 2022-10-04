@@ -7,6 +7,7 @@ use App\Divisi;
 use App\Implementation;
 use App\Project;
 use Illuminate\Http\Request;
+use Auth;
 
 class CommunicationSupportController extends Controller {
 
@@ -361,6 +362,20 @@ class CommunicationSupportController extends Controller {
     public function getOneImplementation($slug) {
         try {
             $data = Implementation::with(['attach_file'])->where('status', 'publish')->where('slug', $slug)->first();
+
+            $is_allowed = 0; //dilarang
+            if ($data->is_restricted == 1) {
+                $user_access = explode(",",$data->user_access);
+                foreach($user_access as $user){
+                    if($user == Auth::user()->personal_number) { //ketika yg di allow match dengan yg lagi login maka..
+                        $is_allowed = 1; //diizinkan
+                        break;
+                    }
+                }
+            } else { //jika tidak bersifat RESTRICTED maka siapa saja yg akses dengan user apapun bisa lolos liat
+                $is_allowed = 1;
+            }
+            $data['is_allowed']     =   $is_allowed??0;
 
             if (!$data) {
                 $data_error['message'] = 'Implementation tidak ditemukan!';

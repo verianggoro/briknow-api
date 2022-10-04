@@ -34,10 +34,7 @@ class CommunicationSupportController extends Controller {
             }
             if($request->get('divisi')) {
                 $where_in = explode(",",$request->get('divisi'));
-                $model->whereIn('project_id', function ($query) use ($where_in){
-                    $query->select('id')->distinct('id')
-                        ->from(with(new Project)->getTable())->whereIn('divisi_id', $where_in);
-                });
+                $model->whereIn('divisi_id', $where_in);
             }
 
             $data = $model->paginate(6);
@@ -77,11 +74,7 @@ class CommunicationSupportController extends Controller {
         try {
             $model = Project::with(['communication_support' => function($q) {
                 $q->where('status', 'publish');
-            }])->whereIn('id', function ($query) {
-                $query->select('project_id')->distinct('project_id')
-                    ->from(with(new CommunicationSupport)->getTable())
-                    ->where('status', 'publish');
-            });
+            }]);
 
             $order = 'asc';
             if($request->get('order')) {
@@ -101,7 +94,19 @@ class CommunicationSupportController extends Controller {
             }
             if($request->get('divisi')) {
                 $where_in = explode(",",$request->get('divisi'));
-                $model->whereIn('divisi_id', $where_in);
+//                $model->whereIn('divisi_id', $where_in);
+                $model->whereIn('id', function ($query) use ($where_in) {
+                    $query->select('project_id')->distinct('project_id')
+                        ->from(with(new CommunicationSupport)->getTable())
+                        ->where('status', 'publish')
+                        ->whereIn('divisi_id', $where_in);
+                });
+            } else {
+                $model->whereIn('id', function ($query) {
+                    $query->select('project_id')->distinct('project_id')
+                        ->from(with(new CommunicationSupport)->getTable())
+                        ->where('status', 'publish');
+                });
             }
 
             $data = $model->get();
@@ -182,10 +187,7 @@ class CommunicationSupportController extends Controller {
             }
             if($request->get('divisi')) {
                 $where_in = explode(",",$request->get('divisi'));
-                $model->whereIn('project_id', function ($query) use ($where_in){
-                    $query->select('id')->distinct('id')
-                        ->from(with(new Project)->getTable())->whereIn('divisi_id', $where_in);
-                });
+                $model->whereIn('divisi_id', $where_in);
             }
 
             $type_file = [];
@@ -252,10 +254,7 @@ class CommunicationSupportController extends Controller {
             }
             if($request->get('divisi')) {
                 $where_in = explode(",",$request->get('divisi'));
-                $model->whereIn('project_id', function ($query) use ($where_in){
-                    $query->select('id')->distinct('id')
-                        ->from(with(new Project)->getTable())->whereIn('divisi_id', $where_in);
-                });
+                $model->whereIn('divisi_id', $where_in);
             }
 
             $data = $model->get();

@@ -54,7 +54,7 @@ class DivisiController extends Controller
             }else{
                 $query = Divisi::where('direktorat',$sample)->get();
             }
-            
+
             $data['message']    =   'GET Berhasil.';
             $data['data']       =   $query;
             return response()->json([
@@ -62,6 +62,24 @@ class DivisiController extends Controller
                 "data"      => $data,
             ],200);
         } catch (\Throwable $th) {
+            $data['message']    =   'GET Gagal';
+            return response()->json([
+                'status'    =>  0,
+                'data'      =>  $data
+            ],200);
+        }
+    }
+
+    public function getALlDivisi(){
+        try{
+            $query  = Divisi::select('direktorat')->groupBy('direktorat')->get();
+            $data['message']    =   'GET Berhasil.';
+            $data['data']       =   $query;
+            return response()->json([
+                "status"    => 1,
+                "data"      => $data,
+            ],200);
+        }catch (\Throwable $th){
             $data['message']    =   'GET Gagal';
             return response()->json([
                 'status'    =>  0,

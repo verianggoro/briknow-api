@@ -44,17 +44,10 @@ class CommunicationSupportController extends Controller {
             $countNotFilter = CommunicationSupport::with(['attach_file'])
                 ->where('type_file', $type)->where('status',  'publish')->count();
 
-            $dataDir   = [];
-            $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
-            $query            = Divisi::get();
-            $dataDir['direktorat'] = $querydirektorat;
-            $dataDir['divisi'] = $query;
-
             return response()->json([
                 "message"   => "GET Berhasil",
                 "status"    => 1,
                 "data"      => $data,
-                "direktorat"=> $dataDir,
                 "totalRow"  => $count,
                 "total"     => $countTotal,
                 "totalData" => $countNotFilter
@@ -119,17 +112,11 @@ class CommunicationSupportController extends Controller {
                     ->from(with(new CommunicationSupport)->getTable())
                     ->where('status', 'publish');
             })->count();
-            $dataDir   = [];
-            $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
-            $query            = Divisi::get();
-            $dataDir['direktorat'] = $querydirektorat;
-            $dataDir['divisi'] = $query;
 
             return response()->json([
                 "message"   => "GET Berhasil",
                 "status"    => 1,
                 "data"      => $data,
-                "direktorat"=> $dataDir,
                 "total"     => $count,
                 "totalData" => $countNotFilter
             ],200);
@@ -332,17 +319,10 @@ class CommunicationSupportController extends Controller {
             $countTotal = $model->count();
             $countNotFilter = $modelCount->count();
 
-            $dataDir   = [];
-            $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
-            $query            = Divisi::get();
-            $dataDir['direktorat'] = $querydirektorat;
-            $dataDir['divisi'] = $query;
-
             return response()->json([
                 "message"   => "GET Berhasil",
                 "status"    => 1,
                 "data"      => $data,
-                "direktorat"=> $dataDir,
                 "totalRow"  => $count,
                 "total"     => $countTotal,
                 "totalData" => $countNotFilter

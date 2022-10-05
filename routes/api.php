@@ -164,6 +164,7 @@ use Illuminate\Support\Facades\Route;
                 Route::post('/commentforum/create','CommentController@createforum');
 
             #Divisi
+                Route::get('/divisi/all', 'DivisiController@getALlDivisi');
                 Route::get('/divisi/{id}','DivisiController@getDivisi');
                 Route::get('/divisibydirektorat/{sample}','DivisiController@getDivisiByDirektorat');
 

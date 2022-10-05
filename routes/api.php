@@ -133,6 +133,9 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/gamification', 'HomeController@gamification');
                 Route::post('/changeavatar' ,'HomeController@changeavatar');
                 Route::get('/cntlessonbytahap', 'HomeController@countLessonByTahap');
+                Route::get('/cntStrategicInitiative', 'HomeController@countInitiative');
+                Route::get('/cntComInitiative', 'HomeController@countComInitiative');
+                Route::get('/cntImplementation', 'HomeController@countImplementation');
             #laporan
             Route::get('/proyektop5', 'LaporanController@proyektopfive');
             Route::get('/vendortop5', 'LaporanController@vendortopfive');

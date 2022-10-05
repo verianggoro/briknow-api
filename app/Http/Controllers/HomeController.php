@@ -622,4 +622,90 @@ class HomeController extends Controller
             ],200);
         }
     }
+
+    //get count initiative
+    public function countInitiative($stage="default"){
+        try {
+            // setting 12 bulan kebelakang
+            $yesterday = date("Y-m-d", strtotime( '-0 days' ) );
+            $month = date("Y-m-d", strtotime( '-6 months' ) );
+
+            $query = CommunicationSupport::whereBetween("created_at", [$month, $yesterday])
+                ->groupBy("type_file")
+                ->select(DB::raw("type_file, COUNT(type_file) as jml"))
+                ->get()
+                ->reverse()
+                ->values();
+
+            // return response()->json($temp);
+
+            $out['data'] = $query;
+
+            return response()->json([
+                "status"    =>  1,
+                "data" => $out
+            ],200);
+        } catch (\Throwable $th) {
+            $data['message']    =   'Something Went Wrong';
+            return response()->json([
+                "status"    =>  0,
+                "data"      =>  $data
+            ],200);
+        }
+    }
+
+//    get count com initiative
+    public function countComInitiative($stage="default"){
+        $yesterday = date("Y-m-d", strtotime( '-0 days' ) );
+        $month = date("Y-m-d", strtotime( '-6 months' ) );
+        $data=[];
+        $vend = project::withCount('search_log')->with('divisi','consultant')
+            ->join('communication_support', 'projects.id', '=', 'communication_support.project_id')
+            ->whereBetween("projects.created_at", [$month, $yesterday])
+            ->orderBy('search_log_count', 'desc')
+            ->limit(5)
+            ->get();
+        // return response()->json($temp);
+        foreach ($vend as $key) {
+            $object = new stdClass;
+            $object->namaproject = $key->nama??'-';
+            $object->jumlahpengunjung = $key->search_log_count;
+            $object->url = config('app.FE_url').'project/'.$key->slug;
+            $data[] = $object;
+        }
+
+        $out['data'] = $data;
+
+        return response()->json([
+            "status"    =>  1,
+            "data"      =>  $out
+        ],200);
+    }
+    //count implementation
+    public function countImplementation($stage="default"){
+        $yesterday = date("Y-m-d", strtotime( '-0 days' ) );
+        $month = date("Y-m-d", strtotime( '-6 months' ) );
+        $data=[];
+        $vend = project::withCount('search_log')->with('divisi','consultant')
+            ->join('implementation', 'projects.id', '=', 'implementation.project_id')
+            ->whereBetween("projects.created_at", [$month, $yesterday])
+            ->orderBy('search_log_count', 'desc')
+            ->limit(5)
+            ->get(["search_log.*", ]);
+        // return response()->json($temp);
+        foreach ($vend as $key) {
+            $object = new stdClass;
+            $object->namaproject = $key->nama??'-';
+            $object->jumlahpengunjung = $key->search_log_count;
+            $object->url = config('app.FE_url').'project/'.$key->slug;
+            $data[] = $object;
+        }
+
+        $out['data'] = $data;
+
+        return response()->json([
+            "status"    =>  1,
+            "data"      =>  $out
+        ],200);
+    }
 }

@@ -76,4 +76,8 @@ class Project extends Model
     public function communication_support(){
         return $this->hasMany(CommunicationSupport::class,'project_id');
     }
+
+    public function implementation(){
+        return $this->hasMany(Implementation::class,'project_id');
+    }
 }

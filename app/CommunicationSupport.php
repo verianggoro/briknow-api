@@ -32,7 +32,7 @@ class CommunicationSupport extends Model {
         'deleted_at',
         'deleted_by'];
 
-    protected $with = ['attach_file'];
+    protected $with = ['attach_file', 'divisi'];
 
     public function project(){
         return $this->belongsTo(Project::class,'id');
@@ -41,5 +41,9 @@ class CommunicationSupport extends Model {
     public function attach_file() {
         return $this->hasMany(AttachFile::class, 'com_id');
     }
+    public function divisi(){
+        return $this->belongsTo(Divisi::class,'divisi_id');
+    }
+
 
 }

@@ -23,7 +23,11 @@ class ManageComSupport extends Controller {
 
     public function getAllComInitiative(Request $request, $type) {
         try{
-            $model = CommunicationSupport::with(['attach_file'])->where('communication_support.type_file', $type)->where('communication_support.status', '!=', 'deleted');
+            $model = CommunicationSupport::with(['attach_file'])
+                ->leftJoin('projects', 'projects.id', '=', 'communication_support.project_id')
+                ->select(DB::raw("communication_support.*, projects.nama, projects.slug as slug_project"))
+                ->where('communication_support.type_file', $type)
+                ->where('communication_support.status', '!=', 'deleted');
 
             $limit = intval($request->get('limit', 10));
             $offset = intval($request->get('offset', 0));
@@ -187,8 +191,10 @@ class ManageComSupport extends Controller {
                 ], 400);
             }
             $model = CommunicationSupport::with(['attach_file'])
+                ->leftJoin('projects', 'projects.id', '=', 'communication_support.project_id')
+                ->select(DB::raw("communication_support.*, projects.nama, projects.slug as slug_project"))
                 ->where('communication_support.type_file', $type)
-                ->where('project_id', $project->id)
+                ->where('communication_support.project_id', $project->id)
                 ->where('communication_support.status', '!=', 'deleted');
 
             $limit = intval($request->get('limit', 10));
@@ -308,7 +314,9 @@ class ManageComSupport extends Controller {
 
     public function getAllImplementation(Request $request, $step) {
         try{
-            $model = Implementation::where('status', '!=', 'deleted');
+            $model = Implementation::leftJoin('projects', 'projects.id', '=', 'implementation.project_id')
+                ->select(DB::raw("implementation.*, projects.nama, projects.slug as slug_project"))
+                ->where('status', '!=', 'deleted');
             $modelCount = Implementation::where('status', '!=', 'deleted');
 
             $limit = intval($request->get('limit', 10));
@@ -543,7 +551,6 @@ class ManageComSupport extends Controller {
             'file_type'         => 'required',
             'deskripsi'         => 'required',
             'attach'            => 'required',
-            'divisi'            => 'required',
             'tgl_mulai'     => 'required',
         ]);
 

@@ -8,6 +8,8 @@ use App\Implementation;
 use App\Project;
 use Illuminate\Http\Request;
 use Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CommunicationSupportController extends Controller {
 
@@ -270,8 +272,12 @@ class CommunicationSupportController extends Controller {
     }
 
     public function getAllImplementation(Request $request, $step) {
-        try {
-            $model = Implementation::where('status', 'publish');
+
+            $model = DB::table('implementation')
+                ->join('projects', 'implementation.project_id', '=', 'projects.id')
+                ->select(DB::raw('implementation.title, implementation.thumbnail, implementation.desc_piloting, 
+                implementation.desc_roll_out, implementation.desc_sosialisasi, implementation.views, projects.slug'))
+                ->where('implementation.status', 'publish');
             $modelCount = Implementation::where('status', 'publish');
 
             if ($step == 'piloting') {
@@ -328,14 +334,6 @@ class CommunicationSupportController extends Controller {
                 "totalData" => $countNotFilter
             ],200);
 
-        } catch (\Throwable $th){
-            $datas['message']    =   'GET Gagal';
-            return response()->json([
-                'status'    =>  0,
-                'data'      =>  $datas,
-                'error' => $th
-            ],200);
-        }
     }
 
     public function getOneImplementation($slug) {

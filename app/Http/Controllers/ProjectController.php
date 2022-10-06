@@ -102,7 +102,7 @@ class ProjectController extends Controller
                     ];
             curl_setopt($ch, CURLOPT_URL,config('app.ES_url').'/project/_search?pretty=true&q=*&size=10000&sort=tanggal_mulai:desc');
             curl_setopt($ch, CURLOPT_HTTPGET, 1);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);        
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             $result     = curl_exec ($ch);
             $hasil = json_decode($result);
@@ -158,18 +158,18 @@ class ProjectController extends Controller
                 $tempY          = Carbon::create($key->tanggal_mulai->toDateTimeString())->format('Y');
                 $tempM          = Carbon::create($key->tanggal_mulai->toDateTimeString())->format('m');
                 $tempM_name     = Carbon::create($key->tanggal_mulai->toDateTimeString())->format('F');
-                
+
                 $object = new stdClass;
                 $object->bulan          =   $tempM;
                 $object->bulan_name     =   $tempM_name;
-                if (! isset($temp_cek[$tempY][$tempM])) {             
-                    // cek handler 
+                if (! isset($temp_cek[$tempY][$tempM])) {
+                    // cek handler
                     $temp_cek[$tempY][$tempM]   =   $tempM;
 
-                    //tampung 
+                    //tampung
                     $year[$tempY][]  =   $object;
                 }
-            }   
+            }
 
             $data['tahun']      =   $year;
             $data['tahun_asli'] =   $tahun;
@@ -223,7 +223,7 @@ class ProjectController extends Controller
                         'Content-Type: application/json',
                         'Accept: application/json',
                     ];
-                    
+
             // postdata
                 $postData = [
                     "from"         => $from,
@@ -256,108 +256,108 @@ class ProjectController extends Controller
                         foreach ($potongan as $p) {
                             $search = implode(', ', $potongan);
                             $match              =   new stdClass;
-                            $match->wildcard    =   ["nama"   => str_replace('"',"",$p)];  
+                            $match->wildcard    =   ["nama"   => str_replace('"',"",$p)];
                             $searchs[]          =  $match;
                             $match              =   new stdClass;
-                            $match->wildcard    =   ["deskripsi"   => str_replace('"',"",$p)];  
+                            $match->wildcard    =   ["deskripsi"   => str_replace('"',"",$p)];
                             $searchs[]          =  $match;
                             $match              =   new stdClass;
-                            $match->wildcard    =   ["consultant.nama"   => str_replace('"',"",$p)];  
+                            $match->wildcard    =   ["consultant.nama"   => str_replace('"',"",$p)];
                             $searchs[]          =  $match;
                             $match              =   new stdClass;
-                            $match->wildcard    =   ["project_managers"   => str_replace('"',"",$p)];  
+                            $match->wildcard    =   ["project_managers"   => str_replace('"',"",$p)];
                             $searchs[]          =  $match;
                             $match              =   new stdClass;
-                            $match->wildcard    =   ["divisi"   => str_replace('"',"",$p)];  
+                            $match->wildcard    =   ["divisi"   => str_replace('"',"",$p)];
                             $searchs[]          =  $match;
                             $match              =   new stdClass;
-                            $match->wildcard    =   ["keywords.nama"   => str_replace('"',"",$p)];  
+                            $match->wildcard    =   ["keywords.nama"   => str_replace('"',"",$p)];
                             $searchs[]          =  $match;
                         }
                     } else {
                         $match              =   new stdClass;
-                        $match->wildcard    =   ["nama"   => str_replace('"',"",$search)];  
+                        $match->wildcard    =   ["nama"   => str_replace('"',"",$search)];
                         $searchs[]          =  $match;
                         $match              =   new stdClass;
-                        $match->wildcard    =   ["deskripsi"   => str_replace('"',"",$search)];  
+                        $match->wildcard    =   ["deskripsi"   => str_replace('"',"",$search)];
                         $searchs[]          =  $match;
                         $match              =   new stdClass;
-                        $match->wildcard    =   ["consultant.nama"   => str_replace('"',"",$search)];  
+                        $match->wildcard    =   ["consultant.nama"   => str_replace('"',"",$search)];
                         $searchs[]          =  $match;
                         $match              =   new stdClass;
-                        $match->wildcard    =   ["project_managers"   => str_replace('"',"",$search)];  
+                        $match->wildcard    =   ["project_managers"   => str_replace('"',"",$search)];
                         $searchs[]          =  $match;
                         $match              =   new stdClass;
-                        $match->wildcard    =   ["divisi"   => str_replace('"',"",$search)];  
+                        $match->wildcard    =   ["divisi"   => str_replace('"',"",$search)];
                         $searchs[]          =  $match;
                         $match              =   new stdClass;
-                        $match->wildcard    =   ["keywords.nama"   => str_replace('"',"",$search)];  
+                        $match->wildcard    =   ["keywords.nama"   => str_replace('"',"",$search)];
                         $searchs[]          =  $match;
                     }
-                    
+
 
                     // ------------------
                     $should             =   new stdClass;
-                    $should->bool       =   ["should"   => $searchs];  
+                    $should->bool       =   ["should"   => $searchs];
                     $must[]             =  $should;
 
                 // filter
                     // flag mcs
                     // $mcs            =   [];
                         $match          =   new stdClass;
-                        $match->match   =   ["flag_mcs"   =>  5];  
+                        $match->match   =   ["flag_mcs"   =>  5];
                         $must[]   =  $match;
-                    
+
                     // consultant
                         $consultants        =   [];
                         if (!empty($consultant)) {
                             if (count($consultant) > 0) {
-                                for ($i=0; $i < count($consultant); $i++) { 
+                                for ($i=0; $i < count($consultant); $i++) {
                                     // $consult        =   [];
                                     $match          =   new stdClass;
-                                    $match->match   =   ["consultant.nama"   => str_replace('"',"",$consultant[$i])];  
+                                    $match->match   =   ["consultant.nama"   => str_replace('"',"",$consultant[$i])];
                                     $consultants[]         =  $match;
                                 }
                             }
                         }
                         $should             =   new stdClass;
-                        $should->bool       =   ["should"   => $consultants];  
+                        $should->bool       =   ["should"   => $consultants];
                         $must[]             =  $should;
 
                     // divisi
                         $divisis        =   [];
                         if (!empty($divisi)) {
                             if (count($divisi) > 0) {
-                                for ($i=0; $i < count($divisi); $i++) { 
+                                for ($i=0; $i < count($divisi); $i++) {
                                     // $consult        =   [];
                                     $match          =   new stdClass;
-                                    $match->match   =   ["divisi"   => str_replace('"',"",$divisi[$i])];  
+                                    $match->match   =   ["divisi"   => str_replace('"',"",$divisi[$i])];
                                     $divisis[]         =  $match;
                                 }
                             }
                         }
                         $should             =   new stdClass;
-                        $should->bool       =   ["should"   => $divisis];  
+                        $should->bool       =   ["should"   => $divisis];
                         $must[]             =  $should;
 
                     // tahun
                         $year        =   [];
                         if (!empty($tahun)) {
                             if (count($tahun) > 0) {
-                                for ($i=0; $i < count($tahun); $i++) { 
+                                for ($i=0; $i < count($tahun); $i++) {
                                     $t                          =   str_replace('"',"",$tahun[$i]);
                                     $range                      =   new stdClass;
                                     $contentrange               =   new stdClass;
                                     $contentrange->time_zone    =   "+01:00";
                                     $contentrange->gte          =   "$t-01T00:00:00";
                                     $contentrange->lte          =   "$t-31T00:00:00";
-                                    $range->range               =   ["tanggal_mulai"   => $contentrange];  
+                                    $range->range               =   ["tanggal_mulai"   => $contentrange];
                                     $year[]                     =  $range;
                                 }
                             }
                         }
                         $should             =   new stdClass;
-                        $should->bool       =   ["should"   => $year];  
+                        $should->bool       =   ["should"   => $year];
                         $must[]             =  $should;
 
                 // supply
@@ -370,11 +370,11 @@ class ProjectController extends Controller
             //     "status"    => '1',
             //     "data"      => $postData
             // ],200);
-            
+
             curl_setopt($ch, CURLOPT_URL,config('app.ES_url')."/project/_search");
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData,JSON_PRETTY_PRINT));           
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData,JSON_PRETTY_PRINT));
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             $result     = curl_exec ($ch);
             $hasil = json_decode($result);
@@ -471,17 +471,17 @@ class ProjectController extends Controller
             $zipFileName = 'download.zip';
 
             // Create ZipArchive Obj
-            // chdir( sys_get_temp_dir() ); 
+            // chdir( sys_get_temp_dir() );
             // $zip = new ZipArchive;
-    
+
             // // path user
             // $path = public_path('temp_download/'.Auth::user()->id);
             // $path_zip = public_path('temp_download/'.Auth::user()->id.'/ex');
             // File::deleteDirectory($path);
             // File::makeDirectory($path_zip, 775, true, true);
-            
+
             // if ($zip->open($path_zip."/".$zipFileName, ZipArchive::CREATE) === TRUE) {
-            //     for ($i=0; $i < count($tampung); $i++) { 
+            //     for ($i=0; $i < count($tampung); $i++) {
             //         $file = storage_path("app/public/".$tampung[$i]);
             //         $relativename = basename($file);
             //         $zip->addFile($file, $relativename);
@@ -504,7 +504,7 @@ class ProjectController extends Controller
             $path_zip = public_path('temp_download/'.Auth::user()->id.'/ex');
             File::deleteDirectory($path_zip);
             File::makeDirectory($path_zip, 777, true, true);
-            
+
             // temp
             chdir( sys_get_temp_dir() ); // Zip always get's created in current working dir so move to tmp.
             $zip = new ZipArchive;
@@ -512,7 +512,7 @@ class ProjectController extends Controller
             // $zipname = 'package_name.zip'; // True filename used when serving to user.
             if ( true === $zip->open( $tmp_zipname, ZipArchive::CREATE ) ) {
                 // $zip->addFromString( 'file_name.txt', 'asdasdasddsasd' );
-                for ($i=0; $i < count($tampung); $i++) { 
+                for ($i=0; $i < count($tampung); $i++) {
                     $file = storage_path("app/public/".$tampung[$i]);
                     $relativename = basename($file);
                     $zip->addFile($file, $relativename);
@@ -522,12 +522,12 @@ class ProjectController extends Controller
                 // permission
                 chmod(sys_get_temp_dir(). '/' .$tmp_zipname, 0777);
                 chmod(public_path('temp_download/'.Auth::user()->id.'/ex'), 0777);
-                
+
                 // move to folder public
                 copy(
-                    sys_get_temp_dir(). '/' .$tmp_zipname, 
+                    sys_get_temp_dir(). '/' .$tmp_zipname,
                     public_path('temp_download/'.Auth::user()->id.'/ex/'.$zipFileName));
-                
+
                 // tutup
                 chmod(public_path('temp_download/'.Auth::user()->id.'/ex'), 0755);
                 unlink( sys_get_temp_dir(). '/' .$tmp_zipname );

@@ -17,7 +17,6 @@ class CreateImplementationTable extends Migration
             $table->id();
             $table->string("title");
             $table->string("slug");
-            $table->foreignId('divisi_id');
             $table->foreignId('project_managers_id');
             $table->string("status");
             $table->integer('views')->default(0);

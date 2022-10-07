@@ -24,8 +24,6 @@ class ManageComSupport extends Controller {
     public function getAllComInitiative(Request $request, $type) {
         try{
             $model = CommunicationSupport::with(['attach_file'])
-                ->leftJoin('projects', 'projects.id', '=', 'communication_support.project_id')
-                ->select(DB::raw("communication_support.*, projects.nama, projects.slug as slug_project"))
                 ->where('communication_support.type_file', $type)
                 ->where('communication_support.status', '!=', 'deleted');
 
@@ -191,8 +189,6 @@ class ManageComSupport extends Controller {
                 ], 400);
             }
             $model = CommunicationSupport::with(['attach_file'])
-                ->leftJoin('projects', 'projects.id', '=', 'communication_support.project_id')
-                ->select(DB::raw("communication_support.*, projects.nama, projects.slug as slug_project"))
                 ->where('communication_support.type_file', $type)
                 ->where('communication_support.project_id', $project->id)
                 ->where('communication_support.status', '!=', 'deleted');
@@ -314,9 +310,7 @@ class ManageComSupport extends Controller {
 
     public function getAllImplementation(Request $request, $step) {
         try{
-            $model = Implementation::leftJoin('projects', 'projects.id', '=', 'implementation.project_id')
-                ->select(DB::raw("implementation.*, projects.nama, projects.slug as slug_project"))
-                ->where('status', '!=', 'deleted');
+            $model = Implementation::where('status', '!=', 'deleted');
             $modelCount = Implementation::where('status', '!=', 'deleted');
 
             $limit = intval($request->get('limit', 10));
@@ -466,17 +460,14 @@ class ManageComSupport extends Controller {
             if ($slug == "*") {
                 $datas     =   [];
             } else {
-                $datas = CommunicationSupport::with(['attach_file' => function($q) {
-                    $q->where('tipe', 'content');
-                }])->leftJoin('projects', 'projects.id', '=', 'communication_support.project_id')
-                    ->where('communication_support.slug', $slug)
-                    ->select(DB::raw("communication_support.*, projects.nama"))->first();
+                $datas = CommunicationSupport::with(['attach_file'])
+                    ->where('communication_support.slug', $slug)->first();
             }
 
             $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
             $query            = Divisi::get();
 
-            $data['project'] = $project;
+//            $data['project'] = $project;
             $data['direktorat'] = $querydirektorat;
             $data['divisi'] = $query;
             $data['type_file'] = $type_file;
@@ -490,7 +481,8 @@ class ManageComSupport extends Controller {
             $data['message']    =   'Something Went Wrong';
             return response()->json([
                 "status"    =>  0,
-                "data"      =>  $data
+                "data"      =>  $data,
+                "error"     => $th
             ],200);
         }
     }
@@ -570,10 +562,34 @@ class ManageComSupport extends Controller {
         $waktu = $now->year."".$now->month."".$now->day."".$now->hour."".$now->minute."".$now->second;
 
         try {
+
+            if (request()->is_new_project == 1) {
+                $project = Project::create([
+                    'divisi_id'             => request()->divisi,
+                    'project_managers_id'   => 0,
+                    'nama'                  => request()->project,
+                    'slug'                  => $waktu."-".\Str::slug(request()->project),
+                    'thumbnail'             => '-',
+                    'deskripsi'             => '-',
+                    'metodologi'            => '-',
+                    'tanggal_mulai'         => request()->tgl_mulai,
+                    'tanggal_selesai'       => request()->tgl_selesai,
+                    'status_finish'         => request()->status,
+                    'is_recomended'         => 0,
+                    'is_restricted'         => 0,
+                    'flag_mcs'              => 3,
+                    'user_maker'            => Auth::User()->personal_number,
+                    'user_checker'          => 0,
+                    'user_signer'           => 0,
+                ]);
+                $project_id = $project->id;
+            } else {
+                $project_id = request()->project;
+            }
+
             if ($id == "*") {
                 $create = CommunicationSupport::create([
-                    'project_id' => request()->project_id,
-                    'divisi_id' => request()->divisi,
+                    'project_id' => $project_id,
                     'title' => request()->title,
                     'slug' => $waktu."-".\Str::slug(request()->title),
                     'type_file' => request()->file_type,
@@ -614,8 +630,7 @@ class ManageComSupport extends Controller {
                     ], 400);
                 }
 
-                $data_new['project_id']     = request()->project_id;
-                $data_new['divisi_id']           = request()->divisi;
+                $data_new['project_id']     = $project_id;
                 $data_new['title']          = request()->title;
                 $data_new['slug']           = $waktu."-".\Str::slug(request()->title);
                 $data_new['desc']           = request()->deskripsi;

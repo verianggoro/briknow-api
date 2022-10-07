@@ -149,6 +149,7 @@ use Illuminate\Support\Facades\Route;
             #Project
                 Route::post('/archieve','ProjectController@archieve');
                 Route::get('/project/{slug}','ProjectController@index');
+                Route::get('/projectbyid/{id}','ProjectController@projectById');
                 Route::get('/projectpreview/{slug}','ProjectController@preview');
                 Route::get('/myproject','MyProjectController@index');
                 Route::post('/detailproject/{id}','DownloadController@detailproject');

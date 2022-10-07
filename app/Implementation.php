@@ -11,7 +11,6 @@ class Implementation extends Model {
         ['id',
         'title',
         'slug',
-        'divisi_id',
         'project_managers_id',
         'status',
         'views',
@@ -39,10 +38,14 @@ class Implementation extends Model {
         'deleted_at',
         'deleted_by'];
 
-    protected $with = ['attach_file', 'project_managers', 'divisi', 'userchecker', 'usersigner'];
+    protected $with = ['attach_file', 'project'];
 
     public function attach_file() {
         return $this->hasMany(AttachFile::class, 'implementation_id');
+    }
+
+    public function project() {
+        return $this->belongsTo(Project::class,'project_id');
     }
 
     public function project_managers(){

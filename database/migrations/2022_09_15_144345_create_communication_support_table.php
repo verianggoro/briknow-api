@@ -16,7 +16,6 @@ class CreateCommunicationSupportTable extends Migration
         Schema::create('communication_support', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->nullable();
-            $table->foreignId('divisi_id')->nullable();
             $table->string("title");
             $table->string("slug");
             $table->string("type_file");

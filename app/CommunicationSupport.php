@@ -9,7 +9,6 @@ class CommunicationSupport extends Model {
 
     protected $fillable = ['id',
         'project_id',
-        'divisi_id',
         'title',
         'slug',
         'type_file',
@@ -32,17 +31,14 @@ class CommunicationSupport extends Model {
         'deleted_at',
         'deleted_by'];
 
-    protected $with = ['attach_file', 'divisi'];
+    protected $with = ['attach_file', 'project'];
 
     public function project(){
-        return $this->belongsTo(Project::class,'id');
+        return $this->belongsTo(Projects::class,'project_id');
     }
 
     public function attach_file() {
         return $this->hasMany(AttachFile::class, 'com_id');
-    }
-    public function divisi(){
-        return $this->belongsTo(Divisi::class,'divisi_id');
     }
 
 

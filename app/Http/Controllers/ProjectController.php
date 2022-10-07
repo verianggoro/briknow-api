@@ -128,6 +128,34 @@ class ProjectController extends Controller
         }
     }
 
+
+
+    public function projectById($id) {
+        try {
+            $data = Project::where('id', $id)->first();
+            if (!$data) {
+                $data_error['message'] = 'Project Not Found';
+                $data_error['error_code'] = 1; //error
+                return response()->json([
+                    'status' => 0,
+                    'data'  => $data_error
+                ], 400);
+            }
+
+            return response()->json([
+                'status' => 1,
+                'data'  => $data
+            ], 400);
+        } catch (\Throwable $th) {
+            $data['error_code'] = 0; //error
+            return response()->json([
+                'status'    =>  0,
+                'data'      =>  $data,
+                'error'     =>  $th
+            ],200);
+        }
+    }
+
     public function bahan_filter(){
         try {
             $direktorat = Divisi::select('direktorat')->distinct('direktorat')->get();

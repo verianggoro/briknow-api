@@ -21,7 +21,7 @@ class DownloadController extends Controller
 
         $data = [];
         foreach ($hasil as $key) {
-            $data[]         = array("id"=>$key->id, "text"=>$key->nama);
+            $data[]         = array("id"=>$key->id, "text"=>$key->nama, "image"=>$key->thumbnail);
         }
 
         return json_encode($data);

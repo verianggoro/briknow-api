@@ -10,6 +10,7 @@ use App\Implementation;
 use App\Keywords;
 use App\Project;
 use App\Project_managers;
+use App\Restriction;
 use App\TempUpload;
 use App\User;
 use Carbon\Carbon;
@@ -494,9 +495,7 @@ class ManageComSupport extends Controller {
             if ($slug == "*") {
                 $datas     =   [];
             } else {
-                $datas = Implementation::leftJoin('projects', 'projects.id', '=', 'implementation.project_id')
-                    ->where('implementation.slug', $slug)
-                    ->select(DB::raw("implementation.*, projects.nama"))->first();
+                $datas = Implementation::where('implementation.slug', $slug)->first();
                 if ($datas->is_restricted == 1) {
                     $user_access = explode(",",$datas->user_access);
                     $access = [];
@@ -784,21 +783,57 @@ class ManageComSupport extends Controller {
             }else{
                 $restricted = '1';
             }
-            if ($id == "*") {
-                $create = Implementation::create([
-                    'title' => request()->nama_project,
-                    'slug' => $waktu."-".\Str::slug(request()->nama_project),
-                    'divisi_id' => request()->divisi,
+
+            if (request()->is_new_project == 1) {
+                $project = Project::create([
+                    'divisi_id'             => request()->divisi,
                     'project_managers_id'   => $create_pm->id,
-                    'status' => 'unpublish',
-                    'thumbnail' => request()->thumbnail,
+                    'nama'                  => request()->project,
+                    'slug'                  => $waktu."-".\Str::slug(request()->project),
+                    'thumbnail'             => '-',
+                    'deskripsi'             => '-',
+                    'metodologi'            => '-',
                     'tanggal_mulai'         => request()->tgl_mulai,
                     'tanggal_selesai'       => request()->tgl_selesai,
-                    'user_access'         => request()->user,
+                    'status_finish'         => request()->status,
+                    'is_recomended'         => 0,
+                    'is_restricted'         => $restricted,
+                    'flag_mcs'              => 3,
+                    'user_maker'            => Auth::User()->personal_number,
+                    'user_checker'          => $dataChecker->personal_number,
+                    'user_signer'           => $dataSigner->personal_number,
+                ]);
+                $project_id = $project->id;
+            } else {
+                $project_id = request()->project;
+            }
+
+            if ($restricted == 1) {
+                $user     =  request()->user;
+                for ($i=0; $i < count($user) ; $i++) {
+                    $simpanuser['project_id']   =   $project->id;
+                    $simpanuser['user_id']      =   (int)$user[$i];
+                    Restriction::create($simpanuser);
+                }
+                $user_access = implode(', ', $user);
+            } else {
+                $user_access = '-';
+            }
+
+            if ($id == "*") {
+                $create = Implementation::create([
+                    'title'                 => request()->nama_project,
+                    'slug'                  => $waktu."-".\Str::slug(request()->nama_project),
+                    'project_managers_id'   => $create_pm->id,
+                    'status'                => 'unpublish',
+                    'thumbnail'             => request()->thumbnail,
+                    'tanggal_mulai'         => request()->tgl_mulai,
+                    'tanggal_selesai'       => request()->tgl_selesai,
+                    'user_access'           => $user_access,
                     'desc_piloting'         => request()->deskripsi_pilot,
                     'desc_roll_out'         => request()->deskripsi_rollout,
-                    'desc_sosialisasi'         => request()->deskripsi_sosialisasi,
-                    'project_id'         => request()->project_id,
+                    'desc_sosialisasi'      => request()->deskripsi_sosialisasi,
+                    'project_id'            => $project_id,
                     'user_checker'          => $dataChecker->personal_number,
                     'user_signer'           => $dataSigner->personal_number,
                     'user_maker'            => Auth::User()->personal_number,
@@ -865,13 +900,7 @@ class ManageComSupport extends Controller {
                     }
                 }
             } else {
-                $cek_pm    =   Project_managers::where('nama',request()->pm)->where('email',request()->emailpm)->first();
-                if (!$cek_pm) {
-                    $cek_pm   = Project_managers::create([
-                        'nama'      =>  request()->pm,
-                        'email'     =>  request()->emailpm,
-                    ]);
-                }
+
                 $upd    =   Implementation::where('id',$id)->first();
                 if (!$upd) {
                     $data_error['message'] = 'Implementation Not Found';
@@ -882,21 +911,20 @@ class ManageComSupport extends Controller {
                     ], 400);
                 }
 
-                $data_new['title']          = request()->nama_project;
-                $data_new['slug']           = $waktu."-".\Str::slug(request()->nama_project);
-                $data_new['divisi_id']           = request()->divisi;
-                $data_new['project_managers_id']      = $cek_pm->id;
-                $data_new['thumbnail']           = request()->thumbnail;
-                $data_new['tanggal_mulai']           = request()->tgl_mulai;
-                $data_new['tanggal_selesai']           = request()->tgl_selesai;
-                $data_new['user_access']           = request()->user;
-                $data_new['desc_piloting']           = request()->deskripsi_pilot;
-                $data_new['desc_roll_out']           = request()->deskripsi_rollout;
-                $data_new['desc_sosialisasi']           = request()->deskripsi_sosialisasi;
-                $data_new['project_id']     = request()->project_id;
-                $data_new['user_checker']     = $dataChecker->personal_number;
-                $data_new['user_signer']     = $dataSigner->personal_number;
-                $data_new['updated_by']     = Auth::User()->personal_number;
+                $data_new['title']                  = request()->nama_project;
+                $data_new['slug']                   = $waktu."-".\Str::slug(request()->nama_project);
+                $data_new['project_managers_id']    = $create_pm->id;
+                $data_new['thumbnail']              = request()->thumbnail;
+                $data_new['tanggal_mulai']          = request()->tgl_mulai;
+                $data_new['tanggal_selesai']        = request()->tgl_selesai;
+                $data_new['user_access']            = request()->user;
+                $data_new['desc_piloting']          = request()->deskripsi_pilot;
+                $data_new['desc_roll_out']          = request()->deskripsi_rollout;
+                $data_new['desc_sosialisasi']       = request()->deskripsi_sosialisasi;
+                $data_new['project_id']             = $project_id;
+                $data_new['user_checker']           = $dataChecker->personal_number;
+                $data_new['user_signer']            = $dataSigner->personal_number;
+                $data_new['updated_by']             = Auth::User()->personal_number;
 
                 $upd->update($data_new);
 

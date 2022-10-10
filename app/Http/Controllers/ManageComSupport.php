@@ -71,12 +71,8 @@ class ManageComSupport extends Controller {
 //            $model = CommunicationSupport::with(['attach_file'])->where('communication_support.type_file', $type)->where('communication_support.status', '!=', 'deleted');
             /*$model = Project::join('communication_support', 'projects.id', '=', 'communication_support.project_id')
                 ->where('communication_support.status', '!=', 'deleted');*/
-            $model = Project::with(['communication_support' => function($q) {
+            $model = Project::whereHas('communication_support', function($q) {
                 $q->where('status', '!=', 'deleted');
-            }])->whereIn('id', function ($query) {
-                $query->select('project_id')->distinct('project_id')
-                    ->from(with(new CommunicationSupport)->getTable())
-                    ->where('status', '!=', 'deleted');
             });
 
             $limit = intval($request->get('limit', 10));
@@ -96,12 +92,8 @@ class ManageComSupport extends Controller {
 
             $count = count($data);
             $countTotal = $model->count();
-            $countNotFilter = Project::with(['communication_support' => function($q) {
+            $countNotFilter = Project::whereHas('communication_support', function($q) {
                 $q->where('status', '!=', 'deleted');
-            }])->whereIn('id', function ($query) {
-                $query->select('project_id')->distinct('project_id')
-                    ->from(with(new CommunicationSupport)->getTable())
-                    ->where('status', '!=', 'deleted');
             })->count();
 
             return response()->json([
@@ -456,8 +448,6 @@ class ManageComSupport extends Controller {
         try {
             $data   = [];
 
-            $project = Project::get();
-
             if ($slug == "*") {
                 $datas     =   [];
             } else {
@@ -468,7 +458,6 @@ class ManageComSupport extends Controller {
             $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
             $query            = Divisi::get();
 
-//            $data['project'] = $project;
             $data['direktorat'] = $querydirektorat;
             $data['divisi'] = $query;
             $data['type_file'] = $type_file;

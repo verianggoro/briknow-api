@@ -45,7 +45,7 @@ class Implementation extends Model {
     }
 
     public function project() {
-        return $this->belongsTo(Project::class,'project_id');
+        return $this->belongsTo(Projects::class,'project_id');
     }
 
     public function project_managers(){

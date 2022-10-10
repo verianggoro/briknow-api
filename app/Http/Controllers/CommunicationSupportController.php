@@ -29,14 +29,18 @@ class CommunicationSupportController extends Controller {
                 $model->where('title', 'like','%'.$request->get('search').'%');
             }
             if($request->get('year')) {
-                $model->whereYear('created_at', $request->get('year'));
+                $where_in_year = explode(",",$request->get('year'));
+                $model->whereIn(DB::raw('year(created_at)'), $where_in_year);
             }
             if($request->get('month')) {
-                $model->whereMonth('created_at', $request->get('month'));
+                $where_in_month = explode(",",$request->get('month'));
+                $model->whereIn(DB::raw('month(created_at)'), $where_in_month);
             }
             if($request->get('divisi')) {
                 $where_in = explode(",",$request->get('divisi'));
-                $model->whereIn('divisi_id', $where_in);
+                $model->whereHas('project', function ($q) use ($where_in) {
+                    $q->whereIn('divisi_id', $where_in);
+                });
             }
 
             $data = $model->paginate(6);
@@ -67,9 +71,9 @@ class CommunicationSupportController extends Controller {
 
     public function getStrategic(Request $request) {
         try {
-            $model = Project::with(['communication_support' => function($q) {
+            $model = Project::whereHas('communication_support', function($q) {
                 $q->where('status', 'publish');
-            }]);
+            });
 
             $order = 'asc';
             if($request->get('order')) {
@@ -82,37 +86,38 @@ class CommunicationSupportController extends Controller {
                 $model->where('projects.nama', 'like','%'.$request->get('search').'%');
             }
             if($request->get('year')) {
-                $model->whereYear('created_at', $request->get('year'));
+                $where_in_year = explode(",",$request->get('year'));
+                $model->whereIn(DB::raw('year(created_at)'), $where_in_year);
             }
             if($request->get('month')) {
-                $model->whereMonth('created_at', $request->get('month'));
+                $where_in_month = explode(",",$request->get('month'));
+                $model->whereIn(DB::raw('month(created_at)'), $where_in_month);
             }
             if($request->get('divisi')) {
                 $where_in = explode(",",$request->get('divisi'));
-//                $model->whereIn('divisi_id', $where_in);
-                $model->whereIn('id', function ($query) use ($where_in) {
-                    $query->select('project_id')->distinct('project_id')
-                        ->from(with(new CommunicationSupport)->getTable())
-                        ->where('status', 'publish')
-                        ->whereIn('divisi_id', $where_in);
-                });
-            } else {
-                $model->whereIn('id', function ($query) {
-                    $query->select('project_id')->distinct('project_id')
-                        ->from(with(new CommunicationSupport)->getTable())
-                        ->where('status', 'publish');
-                });
+                $model->whereIn('divisi_id', $where_in);
+            }
+            if($request->get('tahap')) {
+                if ($request->get('tahap') == 'piloting') {
+                    $model->whereHas('implementation', function ($q) {
+                        $q->whereNotNull('desc_piloting');
+                    });
+                } else if ($request->get('tahap') == 'roll-out') {
+                    $model->whereHas('implementation', function ($q) {
+                        $q->whereNotNull('desc_roll_out');
+                    });
+                } else if ($request->get('tahap') == 'sosialisasi') {
+                    $model->whereHas('implementation', function ($q) {
+                        $q->whereNotNull('desc_sosialisasi');
+                    });
+                }
             }
 
             $data = $model->get();
 
             $count = count($data);
-            $countNotFilter = Project::with(['communication_support' => function($q) {
+            $countNotFilter = Project::whereHas('communication_support', function($q) {
                 $q->where('status', 'publish');
-            }])->whereIn('id', function ($query) {
-                $query->select('project_id')->distinct('project_id')
-                    ->from(with(new CommunicationSupport)->getTable())
-                    ->where('status', 'publish');
             })->count();
 
             return response()->json([
@@ -169,14 +174,18 @@ class CommunicationSupportController extends Controller {
                 $model->where('title', 'like','%'.$request->get('search').'%');
             }
             if($request->get('year')) {
-                $model->whereYear('created_at', $request->get('year'));
+                $where_in_year = explode(",",$request->get('year'));
+                $model->whereIn(DB::raw('year(created_at)'), $where_in_year);
             }
             if($request->get('month')) {
-                $model->whereMonth('created_at', $request->get('month'));
+                $where_in_month = explode(",",$request->get('month'));
+                $model->whereIn(DB::raw('month(created_at)'), $where_in_month);
             }
             if($request->get('divisi')) {
                 $where_in = explode(",",$request->get('divisi'));
-                $model->whereIn('divisi_id', $where_in);
+                $model->whereHas('project', function ($q) use ($where_in) {
+                    $q->whereIn('divisi_id', $where_in);
+                });
             }
 
             $type_file = [];
@@ -236,14 +245,18 @@ class CommunicationSupportController extends Controller {
                 $model->where('title', 'like','%'.$request->get('search').'%');
             }
             if($request->get('year')) {
-                $model->whereYear('created_at', $request->get('year'));
+                $where_in_year = explode(",",$request->get('year'));
+                $model->whereIn(DB::raw('year(created_at)'), $where_in_year);
             }
             if($request->get('month')) {
-                $model->whereMonth('created_at', $request->get('month'));
+                $where_in_month = explode(",",$request->get('month'));
+                $model->whereIn(DB::raw('month(created_at)'), $where_in_month);
             }
             if($request->get('divisi')) {
                 $where_in = explode(",",$request->get('divisi'));
-                $model->whereIn('divisi_id', $where_in);
+                $model->whereHas('project', function ($q) use ($where_in) {
+                    $q->whereIn('divisi_id', $where_in);
+                });
             }
 
             $data = $model->get();
@@ -309,14 +322,16 @@ class CommunicationSupportController extends Controller {
                 $model->where('title', 'like','%'.$request->get('search').'%');
             }
             if($request->get('year')) {
-                $model->whereYear('created_at', $request->get('year'));
+                $where_in_year = explode(",",$request->get('year'));
+                $model->whereIn(DB::raw('year(created_at)'), $where_in_year);
             }
             if($request->get('month')) {
-                $model->whereMonth('created_at', $request->get('month'));
+                $where_in_month = explode(",",$request->get('month'));
+                $model->whereIn(DB::raw('month(created_at)'), $where_in_month);
             }
             if($request->get('divisi')) {
                 $where_in = explode(",",$request->get('divisi'));
-                $model->whereIn('divisi_id', $where_in);
+                $model->whereIn('projects.divisi_id', $where_in);
             }
 
             $data = $model->paginate(5);

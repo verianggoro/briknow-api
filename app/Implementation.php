@@ -38,7 +38,7 @@ class Implementation extends Model {
         'deleted_at',
         'deleted_by'];
 
-    protected $with = ['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner'];
+    protected $with = ['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant'];
 
     public function attach_file() {
         return $this->hasMany(AttachFile::class, 'implementation_id');
@@ -62,6 +62,10 @@ class Implementation extends Model {
 
     public function usersigner(){
         return $this->belongsTo(User::class,'user_signer','personal_number');
+    }
+
+    public function consultant(){
+        return $this->belongsToMany(Consultant::class,'consultant_projects','project_id','consultant_id');
     }
 
 }

@@ -289,7 +289,7 @@ class CommunicationSupportController extends Controller {
             $model = DB::table('implementation')
                 ->join('projects', 'implementation.project_id', '=', 'projects.id')
                 ->select(DB::raw('implementation.title, implementation.thumbnail, implementation.desc_piloting, 
-                implementation.desc_roll_out, implementation.desc_sosialisasi, implementation.views, projects.slug'))
+                implementation.desc_roll_out, implementation.desc_sosialisasi, implementation.views, implementation.slug'))
                 ->where('implementation.status', 'publish');
             $modelCount = Implementation::where('status', 'publish');
 
@@ -353,7 +353,7 @@ class CommunicationSupportController extends Controller {
 
     public function getOneImplementation($slug) {
         try {
-            $data = Implementation::with(['attach_file'])->where('status', 'publish')->where('slug', $slug)->first();
+            $data = Implementation::with(['attach_file', 'consultant','divisi','project_managers'])->where('status', 'publish')->where('slug', $slug)->first();
 
             $is_allowed = 0; //dilarang
             if ($data->is_restricted == 1) {

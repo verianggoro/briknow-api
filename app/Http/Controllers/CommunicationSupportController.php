@@ -43,10 +43,11 @@ class CommunicationSupportController extends Controller {
                 });
             }
 
+            $total = $model->get();
             $data = $model->paginate(6);
 
             $count = count($data);
-            $countTotal = $model->count();
+            $countTotal = count($total);
             $countNotFilter = CommunicationSupport::with(['attach_file'])
                 ->where('type_file', $type)->where('status',  'publish')->count();
 
@@ -334,10 +335,11 @@ class CommunicationSupportController extends Controller {
                 $model->whereIn('projects.divisi_id', $where_in);
             }
 
+            $total = $model->get();
             $data = $model->paginate(5);
 
             $count = count($data);
-            $countTotal = $model->count();
+            $countTotal = count($total);
             $countNotFilter = $modelCount->count();
 
             return response()->json([
@@ -353,7 +355,7 @@ class CommunicationSupportController extends Controller {
 
     public function getOneImplementation($slug) {
         try {
-            $data = Implementation::with(['attach_file', 'consultant','divisi','project_managers'])->where('status', 'publish')->where('slug', $slug)->first();
+            $data = Implementation::with(['attach_file', 'consultant','project_managers'])->where('status', 'publish')->where('slug', $slug)->first();
 
             $is_allowed = 0; //dilarang
             if ($data->is_restricted == 1) {
@@ -391,6 +393,47 @@ class CommunicationSupportController extends Controller {
                 'error' => $th
             ],200);
         }
+    }
+
+    function viewContent($table, $id) {
+        try {
+            $model = null;
+            if ($table == 'implementation') {
+                $model = Implementation::where('id', $id);
+            } else if ($table == 'content') {
+                $model = CommunicationSupport::where('id', $id);
+            }
+
+            $datas = $model->first();
+            if (!$datas) {
+                $data_error['message'] = 'Proyek tidak ditemukan!';
+                $data_error['error_code'] = 1; //error
+                return response()->json([
+                    'status' => 0,
+                    'data'  => $data_error
+                ], 400);
+            }
+
+            $updateDetails['views'] = $datas->views + 1;
+            $model->update($updateDetails);
+
+            $data_upd = $model->first();
+
+            $data['message']    =   'Success';
+            $data['views']    =   $data_upd->views;
+            return response()->json([
+                "status"    => 1,
+                "data"      => $data,
+            ],200);
+        } catch (\Throwable $th) {
+            $data['message']    =   'Update gagal';
+            return response()->json([
+                'status'    =>  0,
+                'data'      =>  $data,
+                'error'     => $th
+            ],200);
+        }
+
     }
 
 }

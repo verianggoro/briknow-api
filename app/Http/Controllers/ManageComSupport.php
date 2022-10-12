@@ -41,10 +41,11 @@ class ManageComSupport extends Controller {
                 $model->where('communication_support.title', 'like','%'.$request->get('search').'%');
             }
 
+            $total = $model->get();
             $data = $model->skip($offset)->take($limit)->get();
 
             $count = count($data);
-            $countTotal = $model->count();
+            $countTotal = count($total);
             $countNotFilter = CommunicationSupport::with(['attach_file'])
                 ->where('type_file', $type)->where('status', '!=', 'deleted')->count();
 
@@ -88,10 +89,11 @@ class ManageComSupport extends Controller {
                 $model->where('projects.nama', 'like','%'.$request->get('search').'%');
             }
 
+            $total = $model->get();
             $data = $model->skip($offset)->take($limit)->get();
 
             $count = count($data);
-            $countTotal = $model->count();
+            $countTotal = count($total);
             $countNotFilter = Project::whereHas('communication_support', function($q) {
                 $q->where('status', '!=', 'deleted');
             })->count();
@@ -199,10 +201,11 @@ class ManageComSupport extends Controller {
                 $model->where('communication_support.title', 'like','%'.$request->get('search').'%');
             }
 
+            $total = $model->get();
             $data = $model->skip($offset)->take($limit)->get();
 
             $count = count($data);
-            $countTotal = $model->count();
+            $countTotal = count($total);
             $countNotFilter = CommunicationSupport::with(['attach_file'])
                 ->where('type_file', $type)
                 ->where('project_id', $project->id)
@@ -336,10 +339,12 @@ class ManageComSupport extends Controller {
                     'message'   => 'Tahap Implementasi tidak ditemukan'
                 ],200);
             }
+
+            $total = $model->get();
             $data = $model->skip($offset)->take($limit)->get();
 
             $count = count($data);
-            $countTotal = $model->count();
+            $countTotal = count($total);
             $countNotFilter = $modelCount->count();
 
             return response()->json([

@@ -52,10 +52,6 @@ class Implementation extends Model {
         return $this->belongsTo(Project_managers::class,'project_managers_id');
     }
 
-    public function divisi(){
-        return $this->belongsTo(Divisi::class,'divisi_id');
-    }
-
     public function userchecker(){
         return $this->belongsTo(User::class,'user_checker','personal_number');
     }

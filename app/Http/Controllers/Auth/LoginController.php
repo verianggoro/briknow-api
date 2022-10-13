@@ -239,6 +239,7 @@ class LoginController extends Controller
                 'data'      =>  $data
             ],200);
         }
+        try{
 //            hit SOAP LDAP
 //            $hitLDAP = $this->LDAP(request()->personal_number, request()->katasandi);
             $data           = User::where('personal_number', $request->personal_number)->first();
@@ -487,7 +488,13 @@ class LoginController extends Controller
 //                    'data'      =>  $data
 //                ],200);
 //            }
-
+        } catch (\Throwable $th) {
+            $data['message']    =   'Something Wrong';
+            return response()->json([
+                'status'    =>  0,
+                'data'      =>  $data
+            ],200);
+        }
     }
     // handle tangkepan dari bristar
     public function proses_api(){

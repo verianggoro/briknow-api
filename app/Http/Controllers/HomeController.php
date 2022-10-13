@@ -49,7 +49,8 @@ class HomeController extends Controller
             $leaderboard    = User::orderby('xp','desc')->limit(10)->get();
 
             $getRecomInnitiative   = CommunicationSupport::where('is_recommend',1)->limit(6)->orderby('updated_at','DESC')->get();
-
+            $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
+            $queryUker            = Divisi::get();
             $levelling_user = [];
             foreach ($leaderboard as $l){
                 $ceklevel               = Level::where('xp', '<=',$l->xp)->orderby('xp','desc')->first();
@@ -85,6 +86,7 @@ class HomeController extends Controller
                 $objInni->view          = $items->views;
                 $objInni->nama          = $items->title;
                 $objInni->updated_at    = $items->updated_at;
+                $objInni->desc          = $items->desc;
                 $classInni[] = $objInni;
             }
 
@@ -94,6 +96,8 @@ class HomeController extends Controller
             $data['consultant']     =   $getconsultant;
             $data['suggest']        =   $suggest;
             $data['leaderboard']    =   $levelling_user;
+            $data['direktorat']     =   $querydirektorat;
+            $data['divisi']         =   $queryUker;
 
             Log::info("INI HASIL GET OWNER BE", [$data]);
 

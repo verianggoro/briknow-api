@@ -554,8 +554,6 @@ class ManageComSupport extends Controller {
         $now = Carbon::now();
         $waktu = $now->year."".$now->month."".$now->day."".$now->hour."".$now->minute."".$now->second;
 
-        try {
-
             if (request()->is_new_project == 1) {
                 $project = Project::create([
                     'divisi_id'             => request()->divisi,
@@ -681,15 +679,7 @@ class ManageComSupport extends Controller {
                 "status"    =>  1,
                 "data"      => $data
             ],200);
-        } catch (\Throwable $th) {
-            $data['message']    =   'Save Data Gagal, Mohon Coba Lagi';
-            $data['error_code'] = 0; //error
-            return response()->json([
-                'status'    =>  0,
-                'data'      =>  $data,
-                'error'     =>  $th
-            ],200);
-        }
+
     }
 
     public function createImplementation($id = "*") {
@@ -727,7 +717,6 @@ class ManageComSupport extends Controller {
         $now = Carbon::now();
         $waktu = $now->year."".$now->month."".$now->day."".$now->hour."".$now->minute."".$now->second;
 
-        try {
             $cekChecker =   User::where('personal_number',(int)request()->checker)->first();
             if (isset($cekChecker->personal_number)) {
                 $dataChecker = $cekChecker;
@@ -1003,15 +992,6 @@ class ManageComSupport extends Controller {
                 "status"    =>  1,
                 "data"      => $data
             ],200);
-        } catch (\Throwable $th) {
-            $data['message']    =   'Save Data Gagal, Mohon Coba Lagi';
-            $data['error_code'] = 0; //error
-            return response()->json([
-                'status'    =>  0,
-                'data'      =>  $data,
-                'error'     =>  $th
-            ],200);
-        }
     }
 
     public function getPublishComInnitiave(Request $request, $type) {

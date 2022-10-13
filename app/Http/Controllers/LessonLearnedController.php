@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Lesson_learned;
+use App\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -16,22 +17,12 @@ class LessonLearnedController extends Controller
             ]);
 
             if (empty($request->tahap)){
-                $query = Lesson_learned::join('projects', 'projects.id', '=', 'lesson_learneds.project_id')
-                    ->join('divisis', 'divisis.id', '=', 'lesson_learneds.divisi_id')
-                    ->join('consultants', 'consultants.id', '=', 'lesson_learneds.consultant_id')
-                    ->select(DB::raw("lesson_learneds.id, divisis.direktorat, divisis.divisi, projects.nama as project_name, consultants.nama as consultant_name,
-                        lesson_learneds.tahap, lesson_learneds.lesson_learned, lesson_learneds.detail, lesson_learneds.created_at,
-                        lesson_learneds.updated_at"))
-                    ->paginate(10);
+                $query = Project::with(['lesson_learned'])->get();
             }else{
-                $query = Lesson_learned::join('projects', 'projects.id', '=', 'lesson_learneds.project_id')
-                    ->join('divisis', 'divisis.id', '=', 'lesson_learneds.divisi_id')
-                    ->join('consultants', 'consultants.id', '=', 'lesson_learneds.consultant_id')
-                    ->where('lesson_learneds.tahap', '=', $request->tahap)
-                    ->select(DB::raw("lesson_learneds.id, divisis.direktorat, divisis.divisi, projects.nama as project_name, consultants.nama as consultant_name,
-                        lesson_learneds.tahap, lesson_learneds.lesson_learned, lesson_learneds.detail, lesson_learneds.created_at,
-                        lesson_learneds.updated_at"))
-                    ->paginate(10);
+                $tahp = $request->tahap;
+                $query = Project::whereHas('lesson_learned', function ($q) use ($tahp) {
+                    $q->where('tahap', '=', $tahp);
+                })->get();
             }
             return response()->json([
                 "message"   => "GET Berhasil",

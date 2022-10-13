@@ -14,6 +14,7 @@ class Implementation extends Model {
         'project_managers_id',
         'status',
         'views',
+        'downloads',
         'thumbnail',
         'tanggal_mulai',
         'tanggal_selesai',
@@ -38,10 +39,22 @@ class Implementation extends Model {
         'deleted_at',
         'deleted_by'];
 
-    protected $with = ['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant'];
+    protected $with = ['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'];
 
     public function attach_file() {
         return $this->hasMany(AttachFile::class, 'implementation_id');
+    }
+
+    public function piloting() {
+        return $this->hasMany(AttachFile::class, 'implementation_id')->where('tipe', 'piloting');
+    }
+
+    public function rollout() {
+        return $this->hasMany(AttachFile::class, 'implementation_id')->where('tipe', 'rollout');
+    }
+
+    public function sosialisasi() {
+        return $this->hasMany(AttachFile::class, 'implementation_id')->where('tipe', 'sosialisasi');
     }
 
     public function project() {

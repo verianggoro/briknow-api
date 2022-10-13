@@ -436,4 +436,34 @@ class CommunicationSupportController extends Controller {
 
     }
 
+    function getFile($content, $id) {
+
+        $model = null;
+        if ($content == 'implementation') {
+            $model = Implementation::where('id', $id);
+        } else if ($content == 'content') {
+            $model = CommunicationSupport::where('id', $id);
+        }
+
+        $datas = $model->first();
+        if (!$datas) {
+            $data_error['message'] = 'Proyek tidak ditemukan!';
+            $data_error['error_code'] = 1; //error
+            return response()->json([
+                'status' => 0,
+                'data'  => $data_error
+            ], 400);
+        }
+
+        $updateDetails['downloads'] = $datas->downloads + 1;
+        $model->update($updateDetails);
+
+        $data = $model->first();
+
+        return response()->json([
+            "status"    => 1,
+            "data"      => $data,
+        ],200);
+    }
+
 }

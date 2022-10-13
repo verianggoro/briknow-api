@@ -20,6 +20,7 @@ class CreateImplementationTable extends Migration
             $table->foreignId('project_managers_id');
             $table->string("status");
             $table->integer('views')->default(0);
+            $table->integer('downloads')->default(0);
             $table->string("thumbnail")->nullable();
             $table->date('tanggal_mulai')->nullable();
             $table->date('tanggal_selesai')->nullable();

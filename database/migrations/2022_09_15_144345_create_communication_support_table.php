@@ -24,6 +24,7 @@ class CreateCommunicationSupportTable extends Migration
             $table->date('tanggal_mulai')->nullable();
             $table->date('tanggal_selesai')->nullable();
             $table->integer('views')->default(0);
+            $table->integer('downloads')->default(0);
             $table->string("thumbnail")->nullable();
             $table->integer('is_recommend')->default(0);
             $table->integer('user_maker');

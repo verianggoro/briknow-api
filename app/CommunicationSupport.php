@@ -17,6 +17,7 @@ class CommunicationSupport extends Model {
         'tanggal_mulai',
         'tanggal_selesai',
         'views',
+        'downloads',
         'thumbnail',
         'user_maker',
         'updated_by',

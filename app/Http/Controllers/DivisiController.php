@@ -72,9 +72,11 @@ class DivisiController extends Controller
 
     public function getALlDivisi(){
         try{
-            $query  = Divisi::select('direktorat')->groupBy('direktorat')->get();
+            $query              = Divisi::select('direktorat')->groupBy('direktorat')->get();
+            $queryDiv           = Divisi::get();
             $data['message']    =   'GET Berhasil.';
-            $data['data']       =   $query;
+            $data['direktorat'] =   $query;
+            $data['divisi']     = $queryDiv;
             return response()->json([
                 "status"    => 1,
                 "data"      => $data,

@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Achievement;
 use App\Activity;
+use App\AttachFile;
+use App\CommunicationSupport;
 use App\ConsultantProject;
 use App\Divisi;
 use App\Forum;
+use App\Implementation;
 use App\Keywords;
 use App\Level;
 use App\Project;
@@ -359,6 +362,118 @@ class DashboardController extends Controller
                 "data"      =>  $data
             ],200);
         }
+    }
+
+    public function dashboardInitiative() {
+
+        $types = CommunicationSupport::select(DB::raw('type_file, SUM(views) as total'))->groupBy('type_file')
+            ->orderby('total','desc')->get();
+        $data = [];
+        foreach($types as $key => $value){
+            $sum = CommunicationSupport::without(['attach_file', 'project'])->where('type_file', $value->type_file)->where('status', '!=', 'deleted')
+                ->select(DB::raw('SUM(views) as total'))->first();
+            $views = CommunicationSupport::without(['attach_file', 'project'])
+                ->select(DB::raw('id, title, views, thumbnail, slug'))
+                ->where('type_file', $value->type_file)->where('status', '!=', 'deleted')
+                ->orderby('views','desc')->take(5)->get();
+            $download = CommunicationSupport::without(['attach_file', 'project'])
+                ->select(DB::raw('id, title, downloads, thumbnail, slug'))
+                ->where('type_file', $value->type_file)->where('status', '!=', 'deleted')
+                ->orderby('downloads','desc')->take(5)->get();
+
+            $data[$key]['tipe']             = $value->type_file;
+            $data[$key]['views_most']       = $views;
+            $data[$key]['downloads_most']   = $download;
+            $data[$key]['search']           = $sum->total;
+        }
+
+        return response()->json([
+            "message"   => "GET Berhasil",
+            "status"    => 1,
+            "data"      => $data,
+        ],200);
+    }
+
+    public function dashboardStrategic() {
+        $project = Project::whereHas('communication_support')
+            ->without(['project_managers', 'divisi', 'keywords', 'consultant', 'lesson_learned', 'comment',
+                'usermaker', 'userchecker', 'usersigner', 'communication_support', 'implementation'])
+            ->select('id', 'nama', 'thumbnail', 'slug')->get();
+
+        $data = [];
+        foreach ($project as $keys=>$values) {
+            $types = CommunicationSupport::select(DB::raw('type_file, SUM(views) as total'))
+                ->where('project_id', $values->id)
+                ->groupBy('type_file')
+                ->orderby('total','desc')->get();
+
+            $search_total = 0;
+            $strategic = [];
+            foreach($types as $key => $value){
+                $sum = CommunicationSupport::without(['attach_file', 'project'])->where('project_id', $values->id)
+                    ->where('type_file', $value->type_file)->where('status', '!=', 'deleted')
+                    ->select(DB::raw('SUM(views) as total'))->first();
+                $views = CommunicationSupport::without(['attach_file', 'project'])->where('project_id', $values->id)
+                    ->select(DB::raw('id, title, views, thumbnail, slug'))
+                    ->where('type_file', $value->type_file)->where('status', '!=', 'deleted')
+                    ->orderby('views','desc')->take(5)->get();
+                $download = CommunicationSupport::without(['attach_file', 'project'])->where('project_id', $values->id)
+                    ->select(DB::raw('id, title, downloads, thumbnail, slug'))
+                    ->where('type_file', $value->type_file)->where('status', '!=', 'deleted')
+                    ->orderby('downloads','desc')->take(5)->get();
+
+                $strategic[$key]['tipe']             = $value->type_file;
+                $strategic[$key]['views_most']       = $views;
+                $strategic[$key]['downloads_most']   = $download;
+                $strategic[$key]['search']           = $sum->total;
+
+                $search_total += $sum->total;
+            }
+
+            $data[$keys]['id'] = $values->id;
+            $data[$keys]['nama'] = $values->nama;
+            $data[$keys]['thumbnail'] = $values->thumbnail;
+            $data[$keys]['slug'] = $values->slug;
+            $data[$keys]['search_total'] = $search_total;
+            $data[$keys]['strategic'] = $strategic;
+        }
+
+        usort($data, function($a, $b) { return $b['search_total'] <=> $a['search_total']; });
+
+        return response()->json([
+            "message"   => "GET Berhasil",
+            "status"    => 1,
+            "data"      => $data,
+        ],200);
+    }
+
+    public function dashboardImplementation() {
+        $step = AttachFile::whereNotNull('implementation_id')->select('tipe')->distinct()->get();
+
+        $data = [];
+        foreach($step as $key => $value){
+            $sum = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
+                ->whereHas($value->tipe)->where('status', '!=', 'deleted')
+                ->select(DB::raw('SUM(views) as total'))->first();
+            $views = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
+                ->join('projects', 'projects.id', '=', 'implementation.project_id')
+                ->select(DB::raw('implementation.id as implementation_id, implementation.title, implementation.views,
+                 projects.id as project_id, projects.nama as nama_project, projects.thumbnail, projects.slug'))
+                ->whereHas($value->tipe)->where('implementation.status', '!=', 'deleted')
+                ->orderby('implementation.views','desc')->take(5)->get();
+
+            $data[$key]['tipe']         = $value->tipe;
+            $data[$key]['search_most']  = $views;
+            $data[$key]['search_total'] = $sum->total;
+        }
+
+        usort($data, function($a, $b) { return $b['search_total'] <=> $a['search_total']; });
+
+        return response()->json([
+            "message"   => "GET Berhasil",
+            "status"    => 1,
+            "data"      => $data,
+        ],200);
     }
 
     public function managegamification()

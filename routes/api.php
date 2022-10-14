@@ -43,6 +43,9 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/dashboard/getprojecttahun','DashboardController@getProjectTahun');
                 Route::get('/dashboard/getprojectpertahun','DashboardController@getProjectPerTahun');
                 Route::get('/dashboard/getprojecttags','DashboardController@getProjectTags');
+                Route::get('/dashboard/initiative','DashboardController@dashboardInitiative');
+                Route::get('/dashboard/strategic','DashboardController@dashboardStrategic');
+                Route::get('/dashboard/implementation','DashboardController@dashboardImplementation');
             #Management User
                 Route::get('/manageuser','ManageUserController@index');
                 Route::get('/manageuser/{search}','ManageUserController@listuser');

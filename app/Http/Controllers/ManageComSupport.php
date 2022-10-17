@@ -236,29 +236,29 @@ class ManageComSupport extends Controller {
 
             if ($status == 'approve') {
                 $updateDetails = [
-                    'status' =>  $status,
-                    'approve_at' =>  $sekarang,
-                    'approve_by' =>  Auth::User()->personal_number,
+                    'status'        =>  $status,
+                    'approve_at'    =>  $sekarang,
+                    'approve_by'    =>  Auth::User()->personal_number,
                 ];
                 /*DB::select(" update communication_support set `approve_at` = '$sekarang',
                                      `approve_by` = '$user', `status` = '$status' where id = '$id' ");*/
             } else if ($status == 'publish') {
                 $updateDetails = [
-                    'status' =>  $status,
-                    'publish_at' =>  $sekarang,
-                    'publish_by' =>  Auth::User()->personal_number
+                    'status'        =>  $status,
+                    'publish_at'    =>  $sekarang,
+                    'publish_by'    =>  Auth::User()->personal_number
                 ];
             } else if ($status == 'reject') {
                 $updateDetails = [
-                    'status' =>  $status,
-                    'reject_at' =>  $sekarang,
-                    'reject_by' =>  Auth::User()->personal_number,
+                    'status'        =>  $status,
+                    'reject_at'     =>  $sekarang,
+                    'reject_by'     =>  Auth::User()->personal_number,
                 ];
             } else if ($status == 'unpublish') {
                 $updateDetails = [
-                    'status' =>  $status,
-                    'unpublish_at' =>  $sekarang,
-                    'unpublish_by' =>  Auth::User()->personal_number,
+                    'status'        =>  $status,
+                    'unpublish_at'  =>  $sekarang,
+                    'unpublish_by'  =>  Auth::User()->personal_number,
                 ];
             }
 
@@ -267,14 +267,14 @@ class ManageComSupport extends Controller {
                 ->update($updateDetails);
 
             $data['message']    =   ucwords($status).' Proyek Berhasil.';
-            $data['toast']    =   ucwords($status) == 'Publish' ? 'Proyek berhasil diterbitkan' : ucwords($status).' Berhasil.';
+            $data['toast']      =   ucwords($status) == 'Publish' ? 'Proyek berhasil diterbitkan' : ucwords($status).' Berhasil.';
             return response()->json([
                 "status"    => 1,
                 "data"      => $data,
             ],200);
         } catch (\Throwable $th) {
             $data['message']    =   ucwords($status).' Proyek Gagal';
-            $data['toast']    =   ucwords($status) == 'Publish' ? 'Project gagal diterbitkan!' : ucwords($status).' Proyek Gagal.';
+            $data['toast']      =   ucwords($status) == 'Publish' ? 'Project gagal diterbitkan!' : ucwords($status).' Proyek Gagal.';
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $data
@@ -360,7 +360,7 @@ class ManageComSupport extends Controller {
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $datas,
-                'error' => $th
+                'error'     => $th
             ],200);
         }
     }
@@ -371,29 +371,29 @@ class ManageComSupport extends Controller {
 
             if ($status == 'approve') {
                 $updateDetails = [
-                    'status' =>  $status,
-                    'approve_at' =>  $sekarang,
-                    'approve_by' =>  Auth::User()->personal_number,
+                    'status'        =>  $status,
+                    'approve_at'    =>  $sekarang,
+                    'approve_by'    =>  Auth::User()->personal_number,
                 ];
                 /*DB::select(" update communication_support set `approve_at` = '$sekarang',
                                      `approve_by` = '$user', `status` = '$status' where id = '$id' ");*/
             } else if ($status == 'publish') {
                 $updateDetails = [
-                    'status' =>  $status,
-                    'publish_at' =>  $sekarang,
-                    'publish_by' =>  Auth::User()->personal_number
+                    'status'        =>  $status,
+                    'publish_at'    =>  $sekarang,
+                    'publish_by'    =>  Auth::User()->personal_number
                 ];
             } else if ($status == 'reject') {
                 $updateDetails = [
-                    'status' =>  $status,
-                    'reject_at' =>  $sekarang,
-                    'reject_by' =>  Auth::User()->personal_number,
+                    'status'        =>  $status,
+                    'reject_at'     =>  $sekarang,
+                    'reject_by'     =>  Auth::User()->personal_number,
                 ];
             } else if ($status == 'unpublish') {
                 $updateDetails = [
-                    'status' =>  $status,
-                    'unpublish_at' =>  $sekarang,
-                    'unpublish_by' =>  Auth::User()->personal_number,
+                    'status'        =>  $status,
+                    'unpublish_at'  =>  $sekarang,
+                    'unpublish_by'  =>  Auth::User()->personal_number,
                 ];
             }
 
@@ -402,14 +402,14 @@ class ManageComSupport extends Controller {
                 ->update($updateDetails);
 
             $data['message']    =   ucwords($status).' Proyek Berhasil.';
-            $data['toast']    =   ucwords($status) == 'Publish' ? 'Proyek berhasil diterbitkan' : ucwords($status).' Berhasil.';
+            $data['toast']      =   ucwords($status) == 'Publish' ? 'Proyek berhasil diterbitkan' : ucwords($status).' Berhasil.';
             return response()->json([
                 "status"    => 1,
                 "data"      => $data,
             ],200);
         } catch (\Throwable $th) {
             $data['message']    =   ucwords($status).' Proyek Gagal';
-            $data['toast']    =   ucwords($status) == 'Publish' ? 'Project gagal diterbitkan!' : ucwords($status).' Proyek Gagal.';
+            $data['toast']      =   ucwords($status) == 'Publish' ? 'Project gagal diterbitkan!' : ucwords($status).' Proyek Gagal.';
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $data
@@ -464,9 +464,9 @@ class ManageComSupport extends Controller {
             $query            = Divisi::get();
 
             $data['direktorat'] = $querydirektorat;
-            $data['divisi'] = $query;
-            $data['type_file'] = $type_file;
-            $data['data'] = $datas;
+            $data['divisi']     = $query;
+            $data['type_file']  = $type_file;
+            $data['data']       = $datas;
 
             return response()->json([
                 "status"    => '1',
@@ -509,10 +509,10 @@ class ManageComSupport extends Controller {
             // $signer = User::where('divisi',Auth::User()->divisi)->where('role','2')->get();
 
             $data['direktorat'] = $querydirektorat;
-            $data['divisi'] = $query;
-            $data['tags'] = $tags;
+            $data['divisi']     = $query;
+            $data['tags']       = $tags;
             $data['consultant'] = $consultant;
-            $data['data'] = $datas;
+            $data['data']       = $datas;
             // $data['checker'] = $checker;
             // $data['signer'] = $signer;
 
@@ -536,7 +536,7 @@ class ManageComSupport extends Controller {
             'file_type'         => 'required',
             'deskripsi'         => 'required',
             'attach'            => 'required',
-            'tgl_mulai'     => 'required',
+            'tgl_mulai'         => 'required',
         ]);
 
         // handle jika tidak terpenuhi
@@ -585,7 +585,7 @@ class ManageComSupport extends Controller {
                     'slug' => $waktu."-".\Str::slug(request()->title),
                     'type_file' => request()->file_type,
                     'desc' => request()->deskripsi,
-                    'status' => 'unpublish',
+                    'status' => 'pending review',
                     'tanggal_mulai'         => request()->tgl_mulai,
                     'tanggal_selesai'       => request()->tgl_selesai,
                     'thumbnail' => request()->thumbnail,
@@ -616,19 +616,19 @@ class ManageComSupport extends Controller {
                     $data_error['message'] = 'Project Not Found';
                     $data_error['error_code'] = 1; //error
                     return response()->json([
-                        'status' => 0,
-                        'data'  => $data_error
+                        'status'     => 0,
+                        'data'      => $data_error
                     ], 400);
                 }
 
-                $data_new['project_id']     = $project_id;
-                $data_new['title']          = request()->title;
-                $data_new['slug']           = $waktu."-".\Str::slug(request()->title);
-                $data_new['desc']           = request()->deskripsi;
-                $data_new['tanggal_mulai']           = request()->tgl_mulai;
-                $data_new['tanggal_selesai']           = request()->tgl_selesai;
-                $data_new['thumbnail']      = request()->thumbnail;
-                $data_new['updated_by']     = Auth::User()->personal_number;
+                $data_new['project_id']         = $project_id;
+                $data_new['title']              = request()->title;
+                $data_new['slug']               = $waktu."-".\Str::slug(request()->title);
+                $data_new['desc']               = request()->deskripsi;
+                $data_new['tanggal_mulai']      = request()->tgl_mulai;
+                $data_new['tanggal_selesai']    = request()->tgl_selesai;
+                $data_new['thumbnail']          = request()->thumbnail;
+                $data_new['updated_by']         = Auth::User()->personal_number;
 
                 $upd->update($data_new);
 
@@ -651,20 +651,6 @@ class ManageComSupport extends Controller {
 
                             $cek->delete();
                         }
-                        /*if($cek){
-                            AttachFile::updateOrCreate([
-                                'url_file' => $cek->path
-                            ],
-                                [
-                                    'com_id' => $id,
-                                    'tipe' => $upd->type_file,
-                                    'nama' => $cek->nama_file,
-                                    'jenis_file' => $cek->type,
-                                    'size' => $cek->size,
-                                ]);
-
-                            $cek->delete();
-                        }*/
                     }
                 }
             }
@@ -704,8 +690,8 @@ class ManageComSupport extends Controller {
 
         // handle jika tidak terpenuhi
         if ($validator->fails()) {
-            $data_error['message'] = $validator->errors();
-            $data_error['error_code'] = 1; //error
+            $data_error['message']      = $validator->errors();
+            $data_error['error_code']   = 1; //error
             return response()->json([
                 'status' => 0,
                 'data'  => $data_error
@@ -808,7 +794,7 @@ class ManageComSupport extends Controller {
                     'title'                 => request()->nama_project,
                     'slug'                  => $waktu."-".\Str::slug(request()->nama_project),
                     'project_managers_id'   => $create_pm->id,
-                    'status'                => 'unpublish',
+                    'status'                => 'pending review',
                     'thumbnail'             => request()->thumbnail,
                     'tanggal_mulai'         => request()->tgl_mulai,
                     'tanggal_selesai'       => request()->tgl_selesai,

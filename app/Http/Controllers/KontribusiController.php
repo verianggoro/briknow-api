@@ -63,7 +63,7 @@ class KontribusiController extends Controller
         //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         //     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
         //     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        //     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));           
+        //     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
         //     $result     = curl_exec ($ch);
         //     $hasil = json_decode($result);
         // }catch (\Throwable $th) {
@@ -104,7 +104,7 @@ class KontribusiController extends Controller
                 return response()->json([
                     'status' => 0,
                     'data'  => $data_error
-                ], 400);            
+                ], 400);
             }
 
             TempUpload::create([
@@ -127,10 +127,23 @@ class KontribusiController extends Controller
     // sudah
     public function delete($kategori){
         $path = request()->path;
-        
+
         $cek = TempUpload::where('path',$path)->first();
         if ($cek) {
             $cek->delete();
+        }
+
+        return request()->all();
+    }
+
+    public function deleteOnLeave(){
+        $path = request()->path;
+
+        for ($i=0; $i < count($path) ; $i++) {
+            $cek = TempUpload::where('path', $path[$i])->first();
+            if ($cek) {
+                $cek->delete();
+            }
         }
 
         return request()->all();
@@ -164,31 +177,31 @@ class KontribusiController extends Controller
 
         // //get filename without extension
         // $fileName = pathinfo($fileNameWithExtension, PATHINFO_FILENAME);
-    
+
         // //get file extension
         // $extension = $request->file('upload')->getClientOriginalExtension();
-    
+
         // //filename to store
         // $fileNameToStore = $fileName.'_'.time().'.'.$extension;
-    
+
         // //Upload File
         // $request->file('upload')->storeAs('uploads', $fileNameToStore);
-    
+
         // $CKE
         // if($CKEditorFuncNum > 0){
                 // ini jika case menggunakan CKEDITOR 4 method FORM
-        //     $url = asset('storage/uploads/'.$fileNameToStore); 
-        //     $msg = 'Image successfully uploaded'; 
+        //     $url = asset('storage/uploads/'.$fileNameToStore);
+        //     $msg = 'Image successfully uploaded';
         //     $renderHtml = "<script>window.parent.CKEDITOR.tools.callFunction($CKEditorFuncNum, '$url', '$msg')</script>";
-             
-        //     // Render HTML output 
-        //     @header('Content-type: text/html; charset=utf-8'); 
+
+        //     // Render HTML output
+        //     @header('Content-type: text/html; charset=utf-8');
         //     echo $renderHtml;
-             
+
         // } else {
                 // ini jika case menggunakan CKEDITOR 4 method XHR
-        //     $url = asset('storage/uploads/'.$fileNameToStore); 
-        //     $msg = 'Image successfully uploaded'; 
+        //     $url = asset('storage/uploads/'.$fileNameToStore);
+        //     $msg = 'Image successfully uploaded';
         //     $renderHtml = "<script>window.parent.CKEDITOR.tools.callFunction($CKEditorFuncNum, '$url', '$msg')</script>";
         //     return response()->json([
         //         'uploaded' => '1',
@@ -230,7 +243,7 @@ class KontribusiController extends Controller
             return response()->json([
                 'status' => 0,
                 'data'  => $data_error
-            ], 400);            
+            ], 400);
         }
 
         try {
@@ -271,12 +284,12 @@ class KontribusiController extends Controller
                 }
             }
             // --------------------------
-                        
+
             // date
             date_default_timezone_set('Asia/Jakarta');
             $now = Carbon::now();
             $waktu = $now->year."".$now->month."".$now->day."".$now->hour."".$now->minute."".$now->second;
-            
+
             // project manager
             $create_pm   = Project_managers::create([
                 'nama'      =>  request()->pm,
@@ -289,7 +302,7 @@ class KontribusiController extends Controller
             }else{
                 $restricted = '1';
             }
-            
+
             // create_project
             $create_project = Project::create([
                 'divisi_id'             => request()->divisi,
@@ -309,11 +322,11 @@ class KontribusiController extends Controller
                 'user_checker'          => $dataChecker->personal_number,
                 'user_signer'           => $dataSigner->personal_number,
             ]);
-            
+
             // vendor
             $tampung_vendor     =   request()->konsultant;
             if ($tampung_vendor !== 'internal') {
-                for ($i=0; $i < count($tampung_vendor) ; $i++) { 
+                for ($i=0; $i < count($tampung_vendor) ; $i++) {
                     $cek_konsultant = Consultant::find($tampung_vendor[$i]);
 
                     if (isset($cek_konsultant->id)) {
@@ -343,7 +356,7 @@ class KontribusiController extends Controller
             $tampung_lesson                 =   request()->lesson;
             $tampung_lesson_keterangan      =   request()->lesson_keterangan;
             if (isset($tampung_lesson)) {
-                for ($i=0; $i < count($tampung_lesson) ; $i++) { 
+                for ($i=0; $i < count($tampung_lesson) ; $i++) {
                     if($tampung_lesson[$i] <> '' or $tampung_lesson_keterangan[$i] <> ''){
                         $simpanlesson['project_id']         =   $create_project->id;
                         $simpanlesson['lesson_learned']     =   $tampung_lesson[$i];
@@ -356,7 +369,7 @@ class KontribusiController extends Controller
             // keyword
             $tampung_keyword     =   request()->keyword;
             if (isset($tampung_keyword)) {
-                for ($i=0; $i < count($tampung_keyword) ; $i++) { 
+                for ($i=0; $i < count($tampung_keyword) ; $i++) {
                     $cek = Keywords::where('nama',$tampung_keyword[$i])->first();
                     if ($cek) {
                         $simpankeyword['project_id']       =   $create_project->id;
@@ -372,7 +385,7 @@ class KontribusiController extends Controller
             // attach
             $tampung_attach     =   request()->attach;
             if (isset($tampung_attach)) {
-                for ($i=0; $i < count($tampung_attach) ; $i++) { 
+                for ($i=0; $i < count($tampung_attach) ; $i++) {
                     $cek = TempUpload::where('path',$tampung_attach[$i])->first();
                     if($cek){
                             $simpanattach['project_id']   =   $create_project->id;
@@ -381,7 +394,7 @@ class KontribusiController extends Controller
                             $simpanattach['url_file']     =   $cek->path;
                             $simpanattach['size']         =   $cek->size;
                             Document::create($simpanattach);
-    
+
                             $cek->delete();
                     }
                 }
@@ -390,7 +403,7 @@ class KontribusiController extends Controller
             // restricted ?
             if (request()->restricted == 1) {
                 $user     =   request()->user;
-                for ($i=0; $i < count($user) ; $i++) { 
+                for ($i=0; $i < count($user) ; $i++) {
                     $simpanuser['project_id']   =   $create_project->id;
                     $simpanuser['user_id']      =   (int)$user[$i];
                     Restriction::create($simpanuser);
@@ -446,7 +459,7 @@ class KontribusiController extends Controller
     {
         try {
             $data   = [];
-            
+
             $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
             $query            = Divisi::get();
             $tags             = keywords::distinct()->get(['nama']);
@@ -479,7 +492,7 @@ class KontribusiController extends Controller
     {
         try {
             $data   = [];
-            
+
             // if (Auth::User()->role == 0) {
             //     $project        = Project::with(['user_restrict','document'])->where('slug',$slug)->where('user_maker', Auth::user()->personal_number)->first();
             // }elseif (Auth::User()->role == 1) {
@@ -491,7 +504,7 @@ class KontribusiController extends Controller
             //     $project        = Project::with(['user_restrict','document'])->where('slug',$slug)->whereIn('flag_mcs', $temp)->first();
             // }
 
-            // cek project 
+            // cek project
             if (Auth::User()->role == 3) {
                 $temp       = [3,4,5,6];
                 $project    = Project::with(['consultant','divisi','keywords', 'lesson_learned','project_managers', 'document', 'favorite_project','user_restrict'])->where('slug',$slug)->whereIn('flag_mcs', $temp)->first();
@@ -509,7 +522,7 @@ class KontribusiController extends Controller
                 return response()->json([
                     'status' => 0,
                     'data'  => $data_error
-                ], 400);       
+                ], 400);
             }
 
 
@@ -573,7 +586,7 @@ class KontribusiController extends Controller
             return response()->json([
                 'status' => 0,
                 'data'  => $data_error
-            ], 400);            
+            ], 400);
         }
 
         try {
@@ -616,7 +629,7 @@ class KontribusiController extends Controller
             // --------------------------
 
 
-            // cek project 
+            // cek project
             $cek    =   Project::where('id',$id)->first();
             if (!$cek) {
                 $data_error['message'] = 'Project Not Found';
@@ -624,21 +637,21 @@ class KontribusiController extends Controller
                 return response()->json([
                     'status' => 0,
                     'data'  => $data_error
-                ], 400);       
+                ], 400);
             }
 
             // date
             date_default_timezone_set('Asia/Jakarta');
             $now = Carbon::now();
             $waktu = $now->year."".$now->month."".$now->day."".$now->hour."".$now->minute."".$now->second;
-            
+
             // project manager
             $cek_pm    =   Project_managers::where('nama',request()->pm)->where('email',request()->emailpm)->first();
             if (!$cek_pm) {
                 $cek_pm   = Project_managers::create([
                     'nama'      =>  request()->pm,
                     'email'     =>  request()->emailpm,
-                ]);      
+                ]);
             }
 
             // restricted
@@ -652,7 +665,7 @@ class KontribusiController extends Controller
             $r_note1 = "";
             $r_note2 = "";
 
-            // role 
+            // role
             // cek role
             if (Auth::user()->role <> 3) {
                 $role = 0;
@@ -724,15 +737,15 @@ class KontribusiController extends Controller
             // $data_baru['user_maker']       = Auth::User()->personal_number;
             $data_baru['user_checker']        = $dataChecker->personal_number;
             $data_baru['user_signer']         = $dataSigner->personal_number;
-            
+
             // create_project
             $cek->update($data_baru);
-            
+
             // vendor
             $tampung_vendor     =   request()->konsultant;
             if ($tampung_vendor !== 'internal') {
                 ConsultantProject::where('project_id',$cek->id)->delete();
-                for ($i=0; $i < count($tampung_vendor) ; $i++) { 
+                for ($i=0; $i < count($tampung_vendor) ; $i++) {
                     // project manager
                     $cek_konsultant = Consultant::find((int)$tampung_vendor[$i]);
 
@@ -764,8 +777,8 @@ class KontribusiController extends Controller
             $tampung_lesson_keterangan      =   request()->lesson_keterangan;
             if (isset($tampung_lesson)) {
                 Lesson_learned::where('project_id',$cek->id)->delete();
-                
-                for ($i=0; $i < count($tampung_lesson) ; $i++) { 
+
+                for ($i=0; $i < count($tampung_lesson) ; $i++) {
                     if($tampung_lesson[$i] <> '' or $tampung_lesson_keterangan[$i] <> ''){
                         $simpanlesson['project_id']         =   $cek->id;
                         $simpanlesson['lesson_learned']     =   $tampung_lesson[$i];
@@ -779,7 +792,7 @@ class KontribusiController extends Controller
             $tampung_keyword     =   request()->keyword;
             if (isset($tampung_keyword)) {
                 Keywords::where('project_id',$cek->id)->delete();
-                for ($i=0; $i < count($tampung_keyword) ; $i++) { 
+                for ($i=0; $i < count($tampung_keyword) ; $i++) {
                     $cek_keyword = Keywords::where('nama',$tampung_keyword[$i])->first();
                     if ($cek_keyword) {
                         $simpankeyword['project_id']       =   $cek->id;
@@ -801,7 +814,7 @@ class KontribusiController extends Controller
 
             $tampung_attach     =   request()->attach;
             if (isset($tampung_attach)) {
-                for ($i=0; $i < count($tampung_attach) ; $i++) { 
+                for ($i=0; $i < count($tampung_attach) ; $i++) {
                     $cek_temp = TempUpload::where('path',$tampung_attach[$i])->first();
                     if($cek_temp){
                         $simpanattach['project_id']   =   $cek->id;
@@ -820,7 +833,7 @@ class KontribusiController extends Controller
             if (request()->restricted == 1) {
                 $user     =   request()->user;
                 Restriction::where('project_id',$cek->id)->delete();
-                for ($i=0; $i < count($user) ; $i++) { 
+                for ($i=0; $i < count($user) ; $i++) {
                     $cek_user = user::where('personal_number',$user[$i])->first();
                     if($cek_user){
                             $simpanuser['project_id']   =   $cek->id;
@@ -914,7 +927,7 @@ class KontribusiController extends Controller
         try {
             $id =   request()->id;
 
-            // // cek project 
+            // // cek project
             // if (Auth::User()->role == 0) {
             //     $data_error['message'] = 'Proyek tidak dapat diakses!';
             //     $data_error['error_code'] = 1; //error
@@ -930,7 +943,7 @@ class KontribusiController extends Controller
             //     $cek    =   Project::where('id',$id)->first();
             // }
 
-            // cek project 
+            // cek project
             if (Auth::User()->role == 3) {
                 $cek    =   Project::where('id',$id)->first();
             }else{
@@ -946,7 +959,7 @@ class KontribusiController extends Controller
                 return response()->json([
                     'status' => 0,
                     'data'  => $data_error
-                ], 400);       
+                ], 400);
             }
 
             // cek role
@@ -990,7 +1003,7 @@ class KontribusiController extends Controller
                 $flag_mcs = 5;
                 // sisipkan data ke db
             }
-            
+
             // update_project
             $data_baru['flag_mcs']            = $flag_mcs;
             $cek->update($data_baru);
@@ -1132,7 +1145,7 @@ class KontribusiController extends Controller
         $id =   request()->id;
         $q = Project::find($id);
 
-        // role 
+        // role
         // cek role
         if (Auth::user()->role <> 3) {
             $role = 0;

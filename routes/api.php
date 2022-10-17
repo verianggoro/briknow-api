@@ -199,6 +199,7 @@ use Illuminate\Support\Facades\Route;
                 #upload file
                     Route::post('/up/{kategori}','KontribusiController@uploadphoto');
                     Route::delete('/up/{kategori}','KontribusiController@delete');
+                    Route::post('/deleteonleave','KontribusiController@deleteOnLeave');
                     Route::post('/kontribusi/create','KontribusiController@create');
                     Route::post('/kontribusi/update/{id}','KontribusiController@update');
                 #bahan

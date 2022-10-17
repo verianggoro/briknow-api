@@ -18,7 +18,7 @@ class Project extends Model
     ];
 
     protected $with = [
-        'project_managers','divisi','keywords', 'consultant','lesson_learned','comment','usermaker','userchecker','usersigner', 'communication_support', 'implementation'
+        'project_managers','divisi','keywords', 'consultant','lesson_learned','comment','usermaker','userchecker','usersigner', 'communication_support', 'implementation', 'document'
     ];
 
     public function favorite_project(){

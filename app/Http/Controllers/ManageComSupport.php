@@ -141,18 +141,19 @@ class ManageComSupport extends Controller {
             }
             $data['project'] = $project;
             $types = CommunicationSupport::where('project_id', $project->id)
-                ->where('status', '!=', 'deleted')->select('type_file')->distinct()->get();
+                ->where('status', '!=', 'deleted')->select(DB::raw('type_file, COUNT(id) as total'))
+                ->groupBy('type_file')->orderby('total','desc')->get();
 
             $type_file = [];
             foreach($types as $r){
                 $key = array_search($r->type_file, array_column($type_list, 'id'));
                 $datas = CommunicationSupport::where('project_id', $project->id)
                     ->where('status', '!=', 'deleted')->where('type_file', $r->type_file)->take(5)->get();
-                $datas_total = CommunicationSupport::where('project_id', $project->id)
-                    ->where('status', '!=', 'deleted')->where('type_file', $r->type_file)->count();
+                /*$datas_total = CommunicationSupport::where('project_id', $project->id)
+                    ->where('status', '!=', 'deleted')->where('type_file', $r->type_file)->count();*/
 
                 $type_list[$key]['content'] = $datas;
-                $type_list[$key]['total_content'] = $datas_total;
+                $type_list[$key]['total_content'] = $r->total;
                 $type_file[] = $type_list[$key];
             }
             $data['type'] = $type_file;

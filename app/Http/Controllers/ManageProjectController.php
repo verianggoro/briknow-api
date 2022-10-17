@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\CommunicationSupport;
 use App\Events\TriggerActivityEvent;
 use App\Notifikasi;
 use App\Project;
@@ -393,6 +394,13 @@ class ManageProjectController extends Controller
             $query->delete();
 
             DB::table('projects')->update(array('flag_es' => NULL));
+
+            $cek = CommunicationSupport::where('project_id', $id)->get();
+            if (!is_null($cek)) {
+                $sekarang = Carbon::now();
+                CommunicationSupport::where('project_id', $id)->update(['status' => 'deleted', 'deleted_at' => $sekarang,
+                    'deleted_by' => Auth::User()->personal_number, 'updated_by' => Auth::User()->personal_number]);
+            }
 
             // refresh ES
             //$this->reloadES();

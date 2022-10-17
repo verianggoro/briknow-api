@@ -108,6 +108,7 @@ use Illuminate\Support\Facades\Route;
                 Route::post('/managecommunication/implementation/upload/{id}', 'ManageComSupport@createImplementation');
                 Route::post('/communication/views/{table}/{id}', 'CommunicationSupportController@viewContent');
                 Route::get('/download/attach/{content}/{id}', 'CommunicationSupportController@getFile');
+                Route::get('/download/file/project/{id}', 'CommunicationSupportController@getFileProject');
 
             #Public Communication Support
                 Route::get('/communicationinitiative/publish/{type}', 'ManageComSupport@getPublishComInnitiave');

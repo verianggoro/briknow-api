@@ -466,4 +466,22 @@ class CommunicationSupportController extends Controller {
         ],200);
     }
 
+    function getFileProject($id) {
+
+        $model = Project::find($id)->first();
+        if (!$model) {
+            $data_error['message'] = 'Proyek tidak ditemukan!';
+            $data_error['error_code'] = 1; //error
+            return response()->json([
+                'status' => 0,
+                'data'  => $data_error
+            ], 400);
+        }
+
+        return response()->json([
+            "status"    => 1,
+            "data"      => $model,
+        ],200);
+    }
+
 }

@@ -10,6 +10,7 @@ use App\CommunicationSupport;
 use App\Consultant;
 use App\ConsultantLog;
 use App\Divisi;
+use App\Implementation;
 use App\Keywords;
 use App\Lesson_learned;
 use App\Level;
@@ -632,18 +633,17 @@ class HomeController extends Controller
     //get count initiative
     public function countInitiative($stage="default"){
         try {
-            // setting 12 bulan kebelakang
-            $yesterday = date("Y-m-d", strtotime( '-0 days' ) );
-            $month = date("Y-m-d", strtotime( '-6 months' ) );
 
-            $query = CommunicationSupport::whereBetween("created_at", [$month, $yesterday])
-                ->groupBy("type_file")
-                ->select(DB::raw("type_file, COUNT(type_file) as jml"))
-                ->get()
-                ->reverse()
-                ->values();
-
-            // return response()->json($temp);
+            $urlFE = config('app.FE_url').'project';
+            $query = CommunicationSupport::without(['attach_file', 'project'])
+                ->join('projects', 'communication_support.project_id', '=', 'projects.id')
+                ->select(DB::raw("projects.nama, sum(communication_support.views) as jml, 
+                CONCAT_WS('/', '{$urlFE}', projects.slug) AS url"))
+                ->groupBy("projects.nama")
+                ->groupBy("url")
+                ->orderBy('jml', 'DESC')
+                ->limit(5)
+                ->get();
 
             $out['data'] = $query;
 
@@ -662,21 +662,31 @@ class HomeController extends Controller
 
 //    get count com initiative
     public function countComInitiative($stage="default"){
-        $yesterday = date("Y-m-d", strtotime( '-0 days' ) );
-        $month = date("Y-m-d", strtotime( '-6 months' ) );
+        $type_list  = [
+            "article" => "Articles",
+            "logo" => "Icon, Logo, Maskot BRIVO",
+            "infographics" => "Infographics",
+            "transformation" => "Transformation Journey",
+            "podcast" => "Podcast",
+            "video" => "Video Content",
+            "instagram" => "Instagram Content"];
+
         $data=[];
-        $vend = project::withCount('search_log')->with('divisi','consultant')
-            ->join('communication_support', 'projects.id', '=', 'communication_support.project_id')
-            ->whereBetween("projects.created_at", [$month, $yesterday])
-            ->orderBy('search_log_count', 'desc')
+        $urlFE = config('app.FE_url').'managecommunication/communicationinitiative';
+        $vend = CommunicationSupport::without(['attach_file', 'project'])
+            ->select(DB::raw("type_file, sum(views) as jml, 
+                CONCAT_WS('/', '{$urlFE}', type_file) AS url"))
+            ->groupBy("type_file")
+            ->groupBy("url")
+            ->orderBy('jml', 'DESC')
             ->limit(5)
             ->get();
-        // return response()->json($temp);
-        foreach ($vend as $key) {
+
+        foreach ($vend as $value) {
             $object = new stdClass;
-            $object->namaproject = $key->nama??'-';
-            $object->jumlahpengunjung = $key->search_log_count;
-            $object->url = config('app.FE_url').'project/'.$key->slug;
+            $object->type_file = $value->type_file? $type_list[$value->type_file]:'-';
+            $object->jml = $value->jml;
+            $object->url = $value->url;
             $data[] = $object;
         }
 
@@ -689,23 +699,28 @@ class HomeController extends Controller
     }
     //count implementation
     public function countImplementation($stage="default"){
-        $yesterday = date("Y-m-d", strtotime( '-0 days' ) );
-        $month = date("Y-m-d", strtotime( '-6 months' ) );
-        $data=[];
-        $vend = project::withCount('search_log')->with('divisi','consultant')
-            ->join('implementation', 'projects.id', '=', 'implementation.project_id')
-            ->whereBetween("projects.created_at", [$month, $yesterday])
-            ->orderBy('search_log_count', 'desc')
-            ->limit(5)
-            ->get(["search_log.*", ]);
-        // return response()->json($temp);
-        foreach ($vend as $key) {
-            $object = new stdClass;
-            $object->namaproject = $key->nama??'-';
-            $object->jumlahpengunjung = $key->search_log_count;
-            $object->url = config('app.FE_url').'project/'.$key->slug;
-            $data[] = $object;
-        }
+
+        $urlFE = config('app.FE_url').'managecommunication/implementation';
+        $b = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
+            ->select(DB::raw("'Roll Out' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'roll-out') AS url"))
+            ->whereNotNull('desc_roll_out')
+            ->groupBy("tahap")
+            ->groupBy("url");
+
+        $c = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
+            ->select(DB::raw("'Sosialisasi' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'sosialisasi') AS url"))
+            ->whereNotNull('desc_sosialisasi')
+            ->groupBy("tahap")
+            ->groupBy("url");
+
+        $data = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
+            ->select(DB::raw("'Piloting' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'piloting') AS url"))
+            ->whereNotNull('desc_piloting')
+            ->union($b)
+            ->union($c)
+            ->groupBy("tahap")
+            ->groupBy("url")
+            ->get();
 
         $out['data'] = $data;
 

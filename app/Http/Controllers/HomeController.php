@@ -51,6 +51,7 @@ class HomeController extends Controller
             $getRecomInnitiative   = CommunicationSupport::where('is_recommend',1)->limit(6)->orderby('updated_at','DESC')->get();
             $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
             $queryUker            = Divisi::get();
+            $consultant = Consultant::get();
             $levelling_user = [];
             foreach ($leaderboard as $l){
                 $ceklevel               = Level::where('xp', '<=',$l->xp)->orderby('xp','desc')->first();
@@ -94,6 +95,7 @@ class HomeController extends Controller
             $data['cominitiative'] =   $classInni;
             $data['owner_project']  =   $getowner;
             $data['consultant']     =   $getconsultant;
+            $data['consultant_filter']     =   $consultant;
             $data['suggest']        =   $suggest;
             $data['leaderboard']    =   $levelling_user;
             $data['direktorat']     =   $querydirektorat;

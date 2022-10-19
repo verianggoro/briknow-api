@@ -141,7 +141,7 @@ class DashboardController extends Controller
             //project divisi
             $querydiv =DB::table('divisis')
             ->join('projects', 'projects.divisi_id', '=', 'divisis.id')
-            ->select('divisis.direktorat as nama_direktorat','divisis.divisi as nama_divisi', 'divisis.id as url' ,DB::raw('count(*) as jumlah_project'), DB::raw('SUM(projects.flag_mcs) as flag_mcs'))
+            ->select('divisis.direktorat as nama_direktorat','divisis.divisi as nama_divisi', 'divisis.shortname as short', 'divisis.id as url' ,DB::raw('count(*) as jumlah_project'), DB::raw('SUM(projects.flag_mcs) as flag_mcs'))
             ->where('flag_mcs', 5)
             ->groupBy('url')
             ->orderBy('jumlah_project','desc')

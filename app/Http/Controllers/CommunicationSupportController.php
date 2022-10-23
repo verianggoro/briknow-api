@@ -317,18 +317,18 @@ class CommunicationSupportController extends Controller {
                 $order = $request->get('order');
             }
             if($request->get('sort')) {
-                $model->orderBy('created_at', $order);
+                $model->orderBy('implementation.created_at', $order);
             }
             if($request->get('search')) {
-                $model->where('title', 'like','%'.$request->get('search').'%');
+                $model->where('implementation.title', 'like','%'.$request->get('search').'%');
             }
             if($request->get('year')) {
                 $where_in_year = explode(",",$request->get('year'));
-                $model->whereIn(DB::raw('year(created_at)'), $where_in_year);
+                $model->whereIn(DB::raw('year(implementation.created_at)'), $where_in_year);
             }
             if($request->get('month')) {
                 $where_in_month = explode(",",$request->get('month'));
-                $model->whereIn(DB::raw('month(created_at)'), $where_in_month);
+                $model->whereIn(DB::raw('month(implementation.created_at)'), $where_in_month);
             }
             if($request->get('divisi')) {
                 $where_in = explode(",",$request->get('divisi'));

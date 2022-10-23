@@ -419,11 +419,9 @@ class CommunicationSupportController extends Controller {
 
             $data_upd = $model->first();
 
-            $data['message']    =   'Success';
-            $data['views']    =   $data_upd->views;
             return response()->json([
                 "status"    => 1,
-                "data"      => $data,
+                "data"      => $data_upd,
             ],200);
         } catch (\Throwable $th) {
             $data['message']    =   'Update gagal';

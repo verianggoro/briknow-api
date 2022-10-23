@@ -184,6 +184,7 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/proj_divisi/{kunci}/{search}','PencarianController@proj_divisi');
                 Route::get('/document_proj/{kunci}/{search}/{sort}','PencarianController@doc_project');
                 Route::get('/project_consultant/{kunci}/{search}/{sort}','PencarianController@proj_consultant');
+                Route::get('/list/doc/{project}/{id}','DocumentController@listDoc');
 
             #Katalog
                 Route::get('/kat','ProjectController@all');

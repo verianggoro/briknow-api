@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\AttachFile;
 use App\Document;
-use App\project;
 use Illuminate\Http\Request;
 
 class DocumentController extends Controller
@@ -95,5 +95,44 @@ class DocumentController extends Controller
     public function destroy(Document $document)
     {
         //
+    }
+
+    public function listDoc(Request $request, $project, $id) {
+        try {
+            $order = 'asc';
+            if($request->get('order')) {
+                $order = $request->get('order');
+            }
+            if ($project == 'project') {
+                $model = Document::where('project_id', $id);
+            } else if ($project == 'content') {
+                $model = AttachFile::where('com_id', $id);
+            } else {
+                $model = AttachFile::where('implementation_id', $id)->where('tipe', $project);
+            }
+
+            if($request->get('sort')) {
+                $model->orderBy($request->get('sort'), $order);
+            } else {
+                $model->orderBy('created_at', $order);
+            }
+            if($request->get('search')) {
+                $model->where('nama', 'like','%'.$request->get('search').'%');
+            }
+
+            $data = $model->get();
+
+            return response()->json([
+                'status'    =>  '1',
+                'data'      =>  $data
+            ],200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'    =>  '0',
+                'data'      =>  $e,
+                'id'      =>  $id,
+                'pro'      =>  $project
+            ],200);
+        }
     }
 }

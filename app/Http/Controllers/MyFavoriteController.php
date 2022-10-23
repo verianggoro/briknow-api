@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\CommunicationSupport;
 use App\User;
 use Auth;
 use Illuminate\Http\Request;
@@ -121,6 +122,28 @@ class MyFavoriteController extends Controller
             }else{
                 $data['favs']    =   rsort($favs);
             }
+            $data['message']    =   "GET Data Berhasil.";
+            return response()->json([
+                "status"    =>  1,
+                "data"      => $data
+            ],200);
+
+        } catch (\Throwable $th) {
+            return response()->json([
+                "status"    =>  0,
+                "message"   =>  "GET Data Gagal.",
+            ],500);
+        }
+    }
+
+    public function fav_com($sort = "asc")
+    {
+        $query = CommunicationSupport::whereHas('favorite_com', function($q) {
+            $q->where('user_id', Auth::user()->id);
+        })->orderBy('title', $sort)->get();
+
+        try {
+            $data['data']    =   $query;
             $data['message']    =   "GET Data Berhasil.";
             return response()->json([
                 "status"    =>  1,

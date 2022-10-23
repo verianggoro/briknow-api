@@ -42,5 +42,8 @@ class CommunicationSupport extends Model {
         return $this->hasMany(AttachFile::class, 'com_id');
     }
 
+    public function favorite_com(){
+        return $this->hasMany(MyComsup::class,'comsup_id');
+    }
 
 }

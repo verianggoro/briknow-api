@@ -44,7 +44,7 @@ class CommunicationSupportController extends Controller {
             }
 
             $total = $model->get();
-            $data = $model->paginate(6);
+            $data = $model->paginate(12);
 
             $count = count($data);
             $countTotal = count($total);

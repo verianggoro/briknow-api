@@ -83,10 +83,12 @@ class HomeController extends Controller
             $classInni = [];
             foreach ($getRecomInnitiative as $items){
                 $objInni    = new stdClass;
+                $objInni->id            = $items->id;
                 $objInni->thumbnail     = $items->thumbnail;
                 $objInni->slug          = $items->slug;
                 $objInni->view          = $items->views;
                 $objInni->nama          = $items->title;
+                $objInni->type_file     = $items->type_file;
                 $objInni->updated_at    = $items->updated_at;
                 $objInni->desc          = $items->desc;
                 $classInni[] = $objInni;

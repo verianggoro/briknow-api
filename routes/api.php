@@ -162,6 +162,7 @@ use Illuminate\Support\Facades\Route;
 
             #My Lesson Learned
                 Route::get('/mylessonlearned', 'MyLessonLearnedController@index');
+                Route::get('/mylessonlearned/all', 'MyLessonLearnedController@getLessonLearnedPublic');
             #Favorit
                 Route::get('/myfavorite','MyFavoriteController@getFavs');
                 Route::post('/bookmark_project/{id}','FavoriteProjectController@save');

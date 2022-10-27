@@ -49,7 +49,7 @@ class HomeController extends Controller
             $suggest        = Keywords::select('nama', DB::raw('count(*) as num'))->groupby('nama')->orderby('num','desc')->limit(5)->get();
             $leaderboard    = User::orderby('xp','desc')->limit(10)->get();
 
-            $getRecomInnitiative   = CommunicationSupport::where('is_recommend',1)->limit(6)->orderby('updated_at','DESC')->get();
+            $getRecomInnitiative   = CommunicationSupport::where('status','=', 'publish')->limit(6)->orderby('updated_at','DESC')->get();
             $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
             $queryUker            = Divisi::get();
             $consultant = Consultant::get();

@@ -555,117 +555,117 @@ class ManageComSupport extends Controller {
         $now = Carbon::now();
         $waktu = $now->year."".$now->month."".$now->day."".$now->hour."".$now->minute."".$now->second;
 
-            if (request()->is_new_project == 1) {
-                $project = Project::create([
-                    'divisi_id'             => request()->divisi,
-                    'project_managers_id'   => 0,
-                    'nama'                  => request()->project,
-                    'slug'                  => $waktu."-".\Str::slug(request()->project),
-                    'thumbnail'             => '-',
-                    'deskripsi'             => '-',
-                    'metodologi'            => '-',
-                    'tanggal_mulai'         => request()->tgl_mulai,
-                    'tanggal_selesai'       => request()->tgl_selesai,
-                    'status_finish'         => request()->status,
-                    'is_recomended'         => 0,
-                    'is_restricted'         => 0,
-                    'flag_mcs'              => 3,
-                    'user_maker'            => Auth::User()->personal_number,
-                    'user_checker'          => 0,
-                    'user_signer'           => 0,
-                ]);
-                $project_id = $project->id;
-            } else {
-                $project_id = request()->project;
-            }
+        if (request()->is_new_project == 1) {
+            $project = Project::create([
+                'divisi_id'             => request()->divisi,
+                'project_managers_id'   => 0,
+                'nama'                  => request()->title,
+                'slug'                  => $waktu."-".\Str::slug(request()->title),
+                'thumbnail'             => request()->thumbnail,
+                'deskripsi'             => '-',
+                'metodologi'            => '-',
+                'tanggal_mulai'         => request()->tgl_mulai,
+                'tanggal_selesai'       => request()->tgl_selesai,
+                'status_finish'         => request()->status,
+                'is_recomended'         => 0,
+                'is_restricted'         => 0,
+                'flag_mcs'              => 3,
+                'user_maker'            => Auth::User()->personal_number,
+                'user_checker'          => 0,
+                'user_signer'           => 0,
+            ]);
+            $project_id = $project->id;
+        } else {
+            $project_id = request()->project;
+        }
 
-            if ($id == "*") {
-                $create = CommunicationSupport::create([
-                    'project_id' => $project_id,
-                    'title' => request()->title,
-                    'slug' => $waktu."-".\Str::slug(request()->title),
-                    'type_file' => request()->file_type,
-                    'desc' => request()->deskripsi,
-                    'status' => 'review',
-                    'tanggal_mulai'         => request()->tgl_mulai,
-                    'tanggal_selesai'       => request()->tgl_selesai,
-                    'thumbnail' => request()->thumbnail,
-                    'user_maker' => Auth::User()->personal_number,
-                ]);
+        if ($id == "*") {
+            $create = CommunicationSupport::create([
+                'project_id'        => $project_id,
+                'title'             => request()->title,
+                'slug'              => $waktu."-".\Str::slug(request()->title),
+                'type_file'         => request()->file_type,
+                'desc'              => request()->deskripsi,
+                'status'            => 'review',
+                'tanggal_mulai'     => request()->tgl_mulai,
+                'tanggal_selesai'   => request()->tgl_selesai,
+                'thumbnail'         => request()->thumbnail,
+                'user_maker'        => Auth::User()->personal_number,
+            ]);
 
-                // attach
-                $tampung_attach     =   request()->attach;
-                if (isset($tampung_attach)) {
-                    for ($i=0; $i < count($tampung_attach) ; $i++) {
-                        $cek = TempUpload::where('path',$tampung_attach[$i])->first();
-                        if($cek){
-                            $attach['com_id']       = $create->id;
-                            $attach['tipe']         = 'content';
-                            $attach['nama']         = $cek->nama_file;
-                            $attach['jenis_file']   = $cek->type;
-                            $attach['url_file']     = $cek->path;
-                            $attach['size']         = $cek->size;
-                            AttachFile::create($attach);
+            // attach
+            $tampung_attach     =   request()->attach;
+            if (isset($tampung_attach)) {
+                for ($i=0; $i < count($tampung_attach) ; $i++) {
+                    $cek = TempUpload::where('path',$tampung_attach[$i])->first();
+                    if($cek){
+                        $attach['com_id']       = $create->id;
+                        $attach['tipe']         = 'content';
+                        $attach['nama']         = $cek->nama_file;
+                        $attach['jenis_file']   = $cek->type;
+                        $attach['url_file']     = $cek->path;
+                        $attach['size']         = $cek->size;
+                        AttachFile::create($attach);
 
-                            $cek->delete();
-                        }
-                    }
-                }
-            } else {
-                $upd    =   CommunicationSupport::where('id',$id)->first();
-                if (!$upd) {
-                    $data_error['message'] = 'Project Not Found';
-                    $data_error['error_code'] = 1; //error
-                    return response()->json([
-                        'status'     => 0,
-                        'data'      => $data_error
-                    ], 400);
-                }
-
-                $data_new['project_id']         = $project_id;
-                $data_new['title']              = request()->title;
-                $data_new['slug']               = $waktu."-".\Str::slug(request()->title);
-                $data_new['desc']               = request()->deskripsi;
-                $data_new['tanggal_mulai']      = request()->tgl_mulai;
-                $data_new['tanggal_selesai']    = request()->tgl_selesai;
-                $data_new['thumbnail']          = request()->thumbnail;
-                $data_new['updated_by']         = Auth::User()->personal_number;
-
-                $upd->update($data_new);
-
-                $tampung_attach     =   request()->attach;
-                if (isset($tampung_attach)) {
-                    AttachFile::whereNotIn('url_file', $tampung_attach)->where('com_id',$id)->delete();
-                }
-
-                if (isset($tampung_attach)) {
-                    for ($i=0; $i < count($tampung_attach) ; $i++) {
-                        $cek = TempUpload::where('path',$tampung_attach[$i])->first();
-                        if($cek){
-                            $attach['com_id']       = $id;
-                            $attach['tipe']         = "content";
-                            $attach['nama']         = $cek->nama_file;
-                            $attach['jenis_file']   = $cek->type;
-                            $attach['url_file']     = $cek->path;
-                            $attach['size']         = $cek->size;
-                            AttachFile::create($attach);
-
-                            $cek->delete();
-                        }
+                        $cek->delete();
                     }
                 }
             }
-
-            $temp = TempUpload::where('path',request()->thumbnail)->first();
-            if ($temp) {
-                $temp->delete();
+        } else {
+            $upd    =   CommunicationSupport::where('id',$id)->first();
+            if (!$upd) {
+                $data_error['message'] = 'Project Not Found';
+                $data_error['error_code'] = 1; //error
+                return response()->json([
+                    'status'     => 0,
+                    'data'      => $data_error
+                ], 400);
             }
 
-            $data['message']    =   'Save Data Berhasil';
-            return response()->json([
-                "status"    =>  1,
-                "data"      => $data
-            ],200);
+            $data_new['project_id']         = $project_id;
+            $data_new['title']              = request()->title;
+            $data_new['slug']               = $waktu."-".\Str::slug(request()->title);
+            $data_new['desc']               = request()->deskripsi;
+            $data_new['tanggal_mulai']      = request()->tgl_mulai;
+            $data_new['tanggal_selesai']    = request()->tgl_selesai;
+            $data_new['thumbnail']          = request()->thumbnail;
+            $data_new['updated_by']         = Auth::User()->personal_number;
+
+            $upd->update($data_new);
+
+            $tampung_attach     =   request()->attach;
+            if (isset($tampung_attach)) {
+                AttachFile::whereNotIn('url_file', $tampung_attach)->where('com_id',$id)->delete();
+            }
+
+            if (isset($tampung_attach)) {
+                for ($i=0; $i < count($tampung_attach) ; $i++) {
+                    $cek = TempUpload::where('path',$tampung_attach[$i])->first();
+                    if($cek){
+                        $attach['com_id']       = $id;
+                        $attach['tipe']         = "content";
+                        $attach['nama']         = $cek->nama_file;
+                        $attach['jenis_file']   = $cek->type;
+                        $attach['url_file']     = $cek->path;
+                        $attach['size']         = $cek->size;
+                        AttachFile::create($attach);
+
+                        $cek->delete();
+                    }
+                }
+            }
+        }
+
+        $temp = TempUpload::where('path',request()->thumbnail)->first();
+        if ($temp) {
+            $temp->delete();
+        }
+
+        $data['message']    =   'Save Data Berhasil';
+        return response()->json([
+            "status"    =>  1,
+            "data"      => $data
+        ],200);
 
     }
 
@@ -674,7 +674,8 @@ class ManageComSupport extends Controller {
             'thumbnail'     => "required",
             'direktorat'    => "required",
             'divisi'        => 'required',
-            'nama_project'  => 'required',
+            'project'       => 'required',
+            'title'         => 'required',
             'status'        => 'required',
             'tgl_mulai'     => 'required',
             'pm'            => 'required',
@@ -704,281 +705,290 @@ class ManageComSupport extends Controller {
         $now = Carbon::now();
         $waktu = $now->year."".$now->month."".$now->day."".$now->hour."".$now->minute."".$now->second;
 
-            $cekChecker =   User::where('personal_number',(int)request()->checker)->first();
-            if (isset($cekChecker->personal_number)) {
-                $dataChecker = $cekChecker;
+        $cekChecker =   User::where('personal_number',(int)request()->checker)->first();
+        if (isset($cekChecker->personal_number)) {
+            $dataChecker = $cekChecker;
+        }else{
+            $cheking = $this->getDataUser(request()->token_bri,(int)request()->checker);
+            if($cheking == false){
+                $data['message']    =   'Get Data Checker Failed';
+                $data['error_code'] = 0; //error
+                return response()->json([
+                    'status'    =>  0,
+                    'data'      =>  $data
+                ],200);
             }else{
-                $cheking = $this->getDataUser(request()->token_bri,(int)request()->checker);
-                if($cheking == false){
-                    $data['message']    =   'Get Data Checker Failed';
-                    $data['error_code'] = 0; //error
-                    return response()->json([
-                        'status'    =>  0,
-                        'data'      =>  $data
-                    ],200);
-                }else{
-                    $dataChecker    =   $cheking;
-                }
+                $dataChecker    =   $cheking;
             }
+        }
 
-            // cek akun signer
-            $cekSigner =   User::where('personal_number',(int)request()->signer)->first();
-            if (isset($cekSigner->personal_number)) {
-                $dataSigner = $cekSigner;
+        // cek akun signer
+        $cekSigner =   User::where('personal_number',(int)request()->signer)->first();
+        if (isset($cekSigner->personal_number)) {
+            $dataSigner = $cekSigner;
+        }else{
+            $cheking = $this->getDataUser(request()->token_bri,(int)request()->signer);
+            if($cheking == false){
+                $data['message']    =   'Get Data Signer Failed';
+                $data['error_code'] = 0; //error
+                return response()->json([
+                    'status'    =>  0,
+                    'data'      =>  $data
+                ],200);
             }else{
-                $cheking = $this->getDataUser(request()->token_bri,(int)request()->signer);
-                if($cheking == false){
-                    $data['message']    =   'Get Data Signer Failed';
-                    $data['error_code'] = 0; //error
-                    return response()->json([
-                        'status'    =>  0,
-                        'data'      =>  $data
-                    ],200);
-                }else{
-                    $dataSigner    =   $cheking;
-                }
+                $dataSigner    =   $cheking;
             }
+        }
 
-            $create_pm    =   Project_managers::where('nama',request()->pm)->where('email',request()->emailpm)->first();
-            if (!$create_pm) {
-                $create_pm   = Project_managers::create([
-                    'nama'      =>  request()->pm,
-                    'email'     =>  request()->emailpm,
-                ]);
+        $create_pm    =   Project_managers::where('nama',request()->pm)->where('email',request()->emailpm)->first();
+        if (!$create_pm) {
+            $create_pm   = Project_managers::create([
+                'nama'      =>  request()->pm,
+                'email'     =>  request()->emailpm,
+            ]);
+        }
+
+        // restricted
+        if (request()->restricted == null || request()->restricted == "0") {
+            $restricted = '0';
+        }else{
+            $restricted = '1';
+        }
+
+        if (request()->is_new_project == 1) {
+            $project = Project::create([
+                'divisi_id'             => request()->divisi,
+                'project_managers_id'   => $create_pm->id,
+                'nama'                  => request()->title,
+                'slug'                  => $waktu."-".\Str::slug(request()->title),
+                'thumbnail'             => request()->thumbnail,
+                'deskripsi'             => '-',
+                'metodologi'            => '-',
+                'tanggal_mulai'         => request()->tgl_mulai,
+                'tanggal_selesai'       => request()->tgl_selesai,
+                'status_finish'         => request()->status,
+                'is_recomended'         => 0,
+                'is_restricted'         => $restricted,
+                'flag_mcs'              => 3,
+                'user_maker'            => Auth::User()->personal_number,
+                'user_checker'          => $dataChecker->personal_number,
+                'user_signer'           => $dataSigner->personal_number,
+            ]);
+            $project_id = $project->id;
+        } else {
+            $project_id = request()->project;
+        }
+
+        if ($restricted == 1) {
+            $user     =  request()->user;
+            for ($i=0; $i < count($user) ; $i++) {
+                $simpanuser['project_id']   =   $project_id;
+                $simpanuser['user_id']      =   (int)$user[$i];
+                Restriction::create($simpanuser);
             }
+            $user_access = implode(', ', $user);
+        } else {
+            $user_access = '-';
+        }
 
-            // restricted
-            if (request()->restricted == null || request()->restricted == "0") {
-                $restricted = '0';
-            }else{
-                $restricted = '1';
-            }
+        if ($id == "*") {
+            $create = Implementation::create([
+                'title'                 => request()->title,
+                'slug'                  => $waktu."-".\Str::slug(request()->title),
+                'project_managers_id'   => $create_pm->id,
+                'status'                => 'review',
+                'thumbnail'             => request()->thumbnail,
+                'tanggal_mulai'         => request()->tgl_mulai,
+                'tanggal_selesai'       => request()->tgl_selesai,
+                'user_access'           => $user_access,
+                'desc_piloting'         => request()->deskripsi_pilot,
+                'desc_roll_out'         => request()->deskripsi_rollout,
+                'desc_sosialisasi'      => request()->deskripsi_sosialisasi,
+                'project_id'            => $project_id,
+                'user_checker'          => $dataChecker->personal_number,
+                'user_signer'           => $dataSigner->personal_number,
+                'user_maker'            => Auth::User()->personal_number,
+            ]);
 
-            if (request()->is_new_project == 1) {
-                $project = Project::create([
-                    'divisi_id'             => request()->divisi,
-                    'project_managers_id'   => $create_pm->id,
-                    'nama'                  => request()->project,
-                    'slug'                  => $waktu."-".\Str::slug(request()->project),
-                    'thumbnail'             => '-',
-                    'deskripsi'             => '-',
-                    'metodologi'            => '-',
-                    'tanggal_mulai'         => request()->tgl_mulai,
-                    'tanggal_selesai'       => request()->tgl_selesai,
-                    'status_finish'         => request()->status,
-                    'is_recomended'         => 0,
-                    'is_restricted'         => $restricted,
-                    'flag_mcs'              => 3,
-                    'user_maker'            => Auth::User()->personal_number,
-                    'user_checker'          => $dataChecker->personal_number,
-                    'user_signer'           => $dataSigner->personal_number,
-                ]);
-                $project_id = $project->id;
-            } else {
-                $project_id = request()->project;
-            }
+            // attach
+            if (request()->piloting == 1) {
+                $tampung_attach_pilot     =   request()->attach_pilot;
+                if (isset($tampung_attach_pilot)) {
+                    for ($i=0; $i < count($tampung_attach_pilot) ; $i++) {
+                        $cek = TempUpload::where('path',$tampung_attach_pilot[$i])->first();
+                        if($cek){
+                            $attach['implementation_id']       = $create->id;
+                            $attach['tipe']                    = 'piloting';
+                            $attach['nama']                    = $cek->nama_file;
+                            $attach['jenis_file']              = $cek->type;
+                            $attach['url_file']                = $cek->path;
+                            $attach['size']                    = $cek->size;
+                            AttachFile::create($attach);
 
-            if ($restricted == 1) {
-                $user     =  request()->user;
-                for ($i=0; $i < count($user) ; $i++) {
-                    $simpanuser['project_id']   =   $project->id;
-                    $simpanuser['user_id']      =   (int)$user[$i];
-                    Restriction::create($simpanuser);
-                }
-                $user_access = implode(', ', $user);
-            } else {
-                $user_access = '-';
-            }
-
-            if ($id == "*") {
-                $create = Implementation::create([
-                    'title'                 => request()->nama_project,
-                    'slug'                  => $waktu."-".\Str::slug(request()->nama_project),
-                    'project_managers_id'   => $create_pm->id,
-                    'status'                => 'review',
-                    'thumbnail'             => request()->thumbnail,
-                    'tanggal_mulai'         => request()->tgl_mulai,
-                    'tanggal_selesai'       => request()->tgl_selesai,
-                    'user_access'           => $user_access,
-                    'desc_piloting'         => request()->deskripsi_pilot,
-                    'desc_roll_out'         => request()->deskripsi_rollout,
-                    'desc_sosialisasi'      => request()->deskripsi_sosialisasi,
-                    'project_id'            => $project_id,
-                    'user_checker'          => $dataChecker->personal_number,
-                    'user_signer'           => $dataSigner->personal_number,
-                    'user_maker'            => Auth::User()->personal_number,
-                ]);
-
-                // attach
-                if (request()->piloting == 1) {
-                    $tampung_attach_pilot     =   request()->attach_pilot;
-                    if (isset($tampung_attach_pilot)) {
-                        for ($i=0; $i < count($tampung_attach_pilot) ; $i++) {
-                            $cek = TempUpload::where('path',$tampung_attach_pilot[$i])->first();
-                            if($cek){
-                                $attach['implementation_id']       = $create->id;
-                                $attach['tipe']                    = 'piloting';
-                                $attach['nama']                    = $cek->nama_file;
-                                $attach['jenis_file']              = $cek->type;
-                                $attach['url_file']                = $cek->path;
-                                $attach['size']                    = $cek->size;
-                                AttachFile::create($attach);
-
-                                $cek->delete();
-                            }
-                        }
-                    }
-                }
-
-                if (request()->rollout == 1) {
-                    $tampung_attach_rollout     =   request()->attach_rollout;
-                    if (isset($tampung_attach_rollout)) {
-                        for ($i=0; $i < count($tampung_attach_rollout) ; $i++) {
-                            $cek = TempUpload::where('path',$tampung_attach_rollout[$i])->first();
-                            if($cek){
-                                $attach['implementation_id']       = $create->id;
-                                $attach['tipe']                    = 'rollout';
-                                $attach['nama']                    = $cek->nama_file;
-                                $attach['jenis_file']              = $cek->type;
-                                $attach['url_file']                = $cek->path;
-                                $attach['size']                    = $cek->size;
-                                AttachFile::create($attach);
-
-                                $cek->delete();
-                            }
-                        }
-                    }
-                }
-
-                if (request()->sosialisasi == 1) {
-                    $tampung_attach_sosialisasi     =   request()->attach_sosialisasi;
-                    if (isset($tampung_attach_sosialisasi)) {
-                        for ($i=0; $i < count($tampung_attach_sosialisasi) ; $i++) {
-                            $cek = TempUpload::where('path',$tampung_attach_sosialisasi[$i])->first();
-                            if($cek){
-                                $attach['implementation_id']       = $create->id;
-                                $attach['tipe']                    = 'sosialisasi';
-                                $attach['nama']                    = $cek->nama_file;
-                                $attach['jenis_file']              = $cek->type;
-                                $attach['url_file']                = $cek->path;
-                                $attach['size']                    = $cek->size;
-                                AttachFile::create($attach);
-
-                                $cek->delete();
-                            }
-                        }
-                    }
-                }
-            } else {
-
-                $upd    =   Implementation::where('id',$id)->first();
-                if (!$upd) {
-                    $data_error['message'] = 'Implementation Not Found';
-                    $data_error['error_code'] = 1; //error
-                    return response()->json([
-                        'status' => 0,
-                        'data'  => $data_error
-                    ], 400);
-                }
-
-                $data_new['title']                  = request()->nama_project;
-                $data_new['slug']                   = $waktu."-".\Str::slug(request()->nama_project);
-                $data_new['project_managers_id']    = $create_pm->id;
-                $data_new['thumbnail']              = request()->thumbnail;
-                $data_new['tanggal_mulai']          = request()->tgl_mulai;
-                $data_new['tanggal_selesai']        = request()->tgl_selesai;
-                $data_new['user_access']            = request()->user;
-                $data_new['desc_piloting']          = request()->deskripsi_pilot;
-                $data_new['desc_roll_out']          = request()->deskripsi_rollout;
-                $data_new['desc_sosialisasi']       = request()->deskripsi_sosialisasi;
-                $data_new['project_id']             = $project_id;
-                $data_new['user_checker']           = $dataChecker->personal_number;
-                $data_new['user_signer']            = $dataSigner->personal_number;
-                $data_new['updated_by']             = Auth::User()->personal_number;
-
-                $upd->update($data_new);
-
-                if (request()->piloting == 1) {
-                    $tampung_attach_pilot = request()->attach_pilot;
-                    if (isset($tampung_attach_pilot)) {
-                        AttachFile::whereNotIn('url_file', $tampung_attach_pilot)->where('implementation_id', $id)->delete();
-                    }
-
-                    if (isset($tampung_attach_pilot)) {
-                        for ($i=0; $i < count($tampung_attach_pilot) ; $i++) {
-                            $cek = TempUpload::where('path',$tampung_attach_pilot[$i])->first();
-                            if($cek){
-                                $attach['implementation_id']       = $id;
-                                $attach['tipe']                    = 'piloting';
-                                $attach['nama']                    = $cek->nama_file;
-                                $attach['jenis_file']              = $cek->type;
-                                $attach['url_file']                = $cek->path;
-                                $attach['size']                    = $cek->size;
-                                AttachFile::create($attach);
-
-                                $cek->delete();
-                            }
-                        }
-                    }
-                }
-
-                if (request()->rollout == 1) {
-                    $tampung_attach_rollout     =   request()->attach_rollout;
-                    if (isset($tampung_attach_rollout)) {
-                        AttachFile::whereNotIn('url_file', $tampung_attach_rollout)->where('implementation_id',$id)->delete();
-                    }
-                    if (isset($tampung_attach_rollout)) {
-                        for ($i=0; $i < count($tampung_attach_rollout) ; $i++) {
-                            $cek = TempUpload::where('path',$tampung_attach_rollout[$i])->first();
-                            if($cek){
-                                $attach['implementation_id']       = $id;
-                                $attach['tipe']                    = 'rollout';
-                                $attach['nama']                    = $cek->nama_file;
-                                $attach['jenis_file']              = $cek->type;
-                                $attach['url_file']                = $cek->path;
-                                $attach['size']                    = $cek->size;
-                                AttachFile::create($attach);
-
-                                $cek->delete();
-                            }
-                        }
-                    }
-                }
-
-                if (request()->sosialisasi == 1) {
-                    $tampung_attach_sosialisasi     =   request()->attach_sosialisasi;
-                    if (isset($tampung_attach_sosialisasi)) {
-                        AttachFile::whereNotIn('url_file', $tampung_attach_sosialisasi)->where('implementation_id',$id)->delete();
-                    }
-                    if (isset($tampung_attach_sosialisasi)) {
-                        for ($i=0; $i < count($tampung_attach_sosialisasi) ; $i++) {
-                            $cek = TempUpload::where('path',$tampung_attach_sosialisasi[$i])->first();
-                            if($cek){
-                                $attach['implementation_id']       = $id;
-                                $attach['tipe']                    = 'sosialisasi';
-                                $attach['nama']                    = $cek->nama_file;
-                                $attach['jenis_file']              = $cek->type;
-                                $attach['url_file']                = $cek->path;
-                                $attach['size']                    = $cek->size;
-                                AttachFile::create($attach);
-
-                                $cek->delete();
-                            }
+                            $cek->delete();
                         }
                     }
                 }
             }
 
-            $temp = TempUpload::where('path',request()->thumbnail)->first();
-            if ($temp) {
-                $temp->delete();
+            if (request()->rollout == 1) {
+                $tampung_attach_rollout     =   request()->attach_rollout;
+                if (isset($tampung_attach_rollout)) {
+                    for ($i=0; $i < count($tampung_attach_rollout) ; $i++) {
+                        $cek = TempUpload::where('path',$tampung_attach_rollout[$i])->first();
+                        if($cek){
+                            $attach['implementation_id']       = $create->id;
+                            $attach['tipe']                    = 'rollout';
+                            $attach['nama']                    = $cek->nama_file;
+                            $attach['jenis_file']              = $cek->type;
+                            $attach['url_file']                = $cek->path;
+                            $attach['size']                    = $cek->size;
+                            AttachFile::create($attach);
+
+                            $cek->delete();
+                        }
+                    }
+                }
             }
 
-            $data['message']    =   'Save Data Berhasil';
-            return response()->json([
-                "status"    =>  1,
-                "data"      => $data
-            ],200);
+            if (request()->sosialisasi == 1) {
+                $tampung_attach_sosialisasi     =   request()->attach_sosialisasi;
+                if (isset($tampung_attach_sosialisasi)) {
+                    for ($i=0; $i < count($tampung_attach_sosialisasi) ; $i++) {
+                        $cek = TempUpload::where('path',$tampung_attach_sosialisasi[$i])->first();
+                        if($cek){
+                            $attach['implementation_id']       = $create->id;
+                            $attach['tipe']                    = 'sosialisasi';
+                            $attach['nama']                    = $cek->nama_file;
+                            $attach['jenis_file']              = $cek->type;
+                            $attach['url_file']                = $cek->path;
+                            $attach['size']                    = $cek->size;
+                            AttachFile::create($attach);
+
+                            $cek->delete();
+                        }
+                    }
+                }
+            }
+        } else {
+
+            $upd    =   Implementation::where('id',$id)->first();
+            if (!$upd) {
+                $data_error['message'] = 'Implementation Not Found';
+                $data_error['error_code'] = 1; //error
+                return response()->json([
+                    'status' => 0,
+                    'data'  => $data_error
+                ], 400);
+            }
+
+            $data_new['title']                  = request()->title;
+            $data_new['slug']                   = $waktu."-".\Str::slug(request()->title);
+            $data_new['project_managers_id']    = $create_pm->id;
+            $data_new['thumbnail']              = request()->thumbnail;
+            $data_new['tanggal_mulai']          = request()->tgl_mulai;
+            $data_new['tanggal_selesai']        = request()->tgl_selesai;
+            $data_new['user_access']            = request()->user;
+            $data_new['desc_piloting']          = request()->deskripsi_pilot;
+            $data_new['desc_roll_out']          = request()->deskripsi_rollout;
+            $data_new['desc_sosialisasi']       = request()->deskripsi_sosialisasi;
+            $data_new['project_id']             = $project_id;
+            $data_new['user_checker']           = $dataChecker->personal_number;
+            $data_new['user_signer']            = $dataSigner->personal_number;
+            $data_new['updated_by']             = Auth::User()->personal_number;
+
+            $upd->update($data_new);
+
+            if (request()->piloting == 1) {
+                $tampung_attach_pilot = request()->attach_pilot;
+                if (isset($tampung_attach_pilot)) {
+                    AttachFile::whereNotIn('url_file', $tampung_attach_pilot)->where('implementation_id', $id)->delete();
+                }
+
+                if (isset($tampung_attach_pilot)) {
+                    for ($i=0; $i < count($tampung_attach_pilot) ; $i++) {
+                        $cek = TempUpload::where('path',$tampung_attach_pilot[$i])->first();
+                        if($cek){
+                            $attach['implementation_id']       = $id;
+                            $attach['tipe']                    = 'piloting';
+                            $attach['nama']                    = $cek->nama_file;
+                            $attach['jenis_file']              = $cek->type;
+                            $attach['url_file']                = $cek->path;
+                            $attach['size']                    = $cek->size;
+                            AttachFile::create($attach);
+
+                            $cek->delete();
+                        }
+                    }
+                }
+            }
+
+            if (request()->rollout == 1) {
+                $tampung_attach_rollout     =   request()->attach_rollout;
+                if (isset($tampung_attach_rollout)) {
+                    AttachFile::whereNotIn('url_file', $tampung_attach_rollout)->where('implementation_id',$id)->delete();
+                }
+                if (isset($tampung_attach_rollout)) {
+                    for ($i=0; $i < count($tampung_attach_rollout) ; $i++) {
+                        $cek = TempUpload::where('path',$tampung_attach_rollout[$i])->first();
+                        if($cek){
+                            $attach['implementation_id']       = $id;
+                            $attach['tipe']                    = 'rollout';
+                            $attach['nama']                    = $cek->nama_file;
+                            $attach['jenis_file']              = $cek->type;
+                            $attach['url_file']                = $cek->path;
+                            $attach['size']                    = $cek->size;
+                            AttachFile::create($attach);
+
+                            $cek->delete();
+                        }
+                    }
+                }
+            }
+
+            if (request()->sosialisasi == 1) {
+                $tampung_attach_sosialisasi     =   request()->attach_sosialisasi;
+                if (isset($tampung_attach_sosialisasi)) {
+                    AttachFile::whereNotIn('url_file', $tampung_attach_sosialisasi)->where('implementation_id',$id)->delete();
+                }
+                if (isset($tampung_attach_sosialisasi)) {
+                    for ($i=0; $i < count($tampung_attach_sosialisasi) ; $i++) {
+                        $cek = TempUpload::where('path',$tampung_attach_sosialisasi[$i])->first();
+                        if($cek){
+                            $attach['implementation_id']       = $id;
+                            $attach['tipe']                    = 'sosialisasi';
+                            $attach['nama']                    = $cek->nama_file;
+                            $attach['jenis_file']              = $cek->type;
+                            $attach['url_file']                = $cek->path;
+                            $attach['size']                    = $cek->size;
+                            AttachFile::create($attach);
+
+                            $cek->delete();
+                        }
+                    }
+                }
+            }
+        }
+
+        $temp = TempUpload::where('path',request()->thumbnail)->first();
+        if ($temp) {
+            $temp->delete();
+        }
+
+        if (request()->temp_delete) {
+            foreach (request()->temp_delete as $path) {
+                $temp = TempUpload::where('path', $path)->first();
+                if ($temp) {
+                    $temp->delete();
+                }
+            }
+        }
+
+        $data['message']    =   'Save Data Berhasil';
+        return response()->json([
+            "status"    =>  1,
+            "data"      => $data
+        ],200);
     }
 
     public function getPublishComInnitiave(Request $request, $type) {

@@ -107,6 +107,13 @@ class KontribusiController extends Controller
                 ], 400);
             }
 
+            if (request()->del) {
+                $temp = TempUpload::where('path', request()->del)->first();
+                if ($temp) {
+                    $temp->delete();
+                }
+            }
+
             TempUpload::create([
                 'jenis'     => $kategori,
                 'nama_file' => request()->filename,

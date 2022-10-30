@@ -35,7 +35,7 @@ class ManageComSupport extends Controller {
                 $order = $request->get('order');
             }
             if($request->get('sort')) {
-                $model->orderBy('communication_support.created_at', $order);
+                $model->orderBy('communication_support.tanggal_upload', $order);
             }
             if($request->get('search')) {
                 $model->where('communication_support.title', 'like','%'.$request->get('search').'%');
@@ -196,7 +196,7 @@ class ManageComSupport extends Controller {
                 $order = $request->get('order');
             }
             if($request->get('sort')) {
-                $model->orderBy('communication_support.created_at', $order);
+                $model->orderBy('communication_support.tanggal_upload', $order);
             }
             if($request->get('search')) {
                 $model->where('communication_support.title', 'like','%'.$request->get('search').'%');
@@ -537,7 +537,7 @@ class ManageComSupport extends Controller {
             'file_type'         => 'required',
             'deskripsi'         => 'required',
             'attach'            => 'required',
-            'tgl_mulai'         => 'required',
+            'tgl_upload'        => 'required',
         ]);
 
         // handle jika tidak terpenuhi
@@ -559,14 +559,13 @@ class ManageComSupport extends Controller {
             $project = Project::create([
                 'divisi_id'             => request()->divisi,
                 'project_managers_id'   => 0,
-                'nama'                  => request()->title,
-                'slug'                  => $waktu."-".\Str::slug(request()->title),
+                'nama'                  => request()->project_nama,
+                'slug'                  => $waktu."-".\Str::slug(request()->project_nama),
                 'thumbnail'             => request()->thumbnail,
                 'deskripsi'             => '-',
                 'metodologi'            => '-',
-                'tanggal_mulai'         => request()->tgl_mulai,
-                'tanggal_selesai'       => request()->tgl_selesai,
-                'status_finish'         => request()->status,
+                'tanggal_mulai'         => request()->tgl_upload,
+                'status_finish'         => 0,
                 'is_recomended'         => 0,
                 'is_restricted'         => 0,
                 'flag_mcs'              => 3,
@@ -587,8 +586,7 @@ class ManageComSupport extends Controller {
                 'type_file'         => request()->file_type,
                 'desc'              => request()->deskripsi,
                 'status'            => 'review',
-                'tanggal_mulai'     => request()->tgl_mulai,
-                'tanggal_selesai'   => request()->tgl_selesai,
+                'tanggal_upload'    => request()->tgl_upload,
                 'thumbnail'         => request()->thumbnail,
                 'user_maker'        => Auth::User()->personal_number,
             ]);
@@ -626,8 +624,7 @@ class ManageComSupport extends Controller {
             $data_new['title']              = request()->title;
             $data_new['slug']               = $waktu."-".\Str::slug(request()->title);
             $data_new['desc']               = request()->deskripsi;
-            $data_new['tanggal_mulai']      = request()->tgl_mulai;
-            $data_new['tanggal_selesai']    = request()->tgl_selesai;
+            $data_new['tanggal_upload']     = request()->tgl_upload;
             $data_new['thumbnail']          = request()->thumbnail;
             $data_new['updated_by']         = Auth::User()->personal_number;
 
@@ -659,6 +656,15 @@ class ManageComSupport extends Controller {
         $temp = TempUpload::where('path',request()->thumbnail)->first();
         if ($temp) {
             $temp->delete();
+        }
+
+        if (request()->temp_delete) {
+            foreach (request()->temp_delete as $path) {
+                $temp = TempUpload::where('path', $path)->first();
+                if ($temp) {
+                    $temp->delete();
+                }
+            }
         }
 
         $data['message']    =   'Save Data Berhasil';

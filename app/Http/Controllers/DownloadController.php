@@ -11,16 +11,17 @@ class DownloadController extends Controller
     public $successStatus = 200;
 
     public function searchproject(){
-        $model = Project::orderBy('nama', 'asc')->limit(8)->where('flag_mcs',5);
+        $model = Project::orderBy('nama', 'asc')->limit(8);
         $cari = request()->searchTerm;
         $impl = request()->impl;
+        $no_pub = request()->nonpublic;
         if ($cari != null) {
             $model->where('nama', 'like', "%$cari%");
-//            $hasil = Project::orderBy('nama', 'asc')->limit(8)->where('flag_mcs',5)->get();
-        }/*else{
-            $hasil = Project::where('nama', 'like', "%$cari%")->orderBy('nama', 'asc')->where('flag_mcs',5)->limit(8)->get();
-            // $hasil = Project::where('nama', 'like', "%$cari%")->orderBy('nama', 'asc')->limit(8)->get();
-        }*/
+        }
+
+        if (!$no_pub || !$no_pub == null || $no_pub != 'Y') {
+            $model->where('flag_mcs',5);
+        }
         $hasil = $model->get();
 
         $data = [];

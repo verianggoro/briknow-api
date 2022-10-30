@@ -706,7 +706,7 @@ class HomeController extends Controller
 
         $urlFE = config('app.FE_url').'managecommunication/implementation';
         $b = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
-            ->select(DB::raw("'Roll Out' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'roll-out') AS url"))
+            ->select(DB::raw("'Roll-Out' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'roll-out') AS url"))
             ->whereNotNull('desc_roll_out')
             ->groupBy("tahap")
             ->groupBy("url");

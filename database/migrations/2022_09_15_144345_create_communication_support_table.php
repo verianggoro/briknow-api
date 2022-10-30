@@ -21,8 +21,7 @@ class CreateCommunicationSupportTable extends Migration
             $table->string("type_file");
             $table->text('desc');
             $table->string("status");
-            $table->date('tanggal_mulai')->nullable();
-            $table->date('tanggal_selesai')->nullable();
+            $table->date('tanggal_upload')->nullable();
             $table->integer('views')->default(0);
             $table->integer('downloads')->default(0);
             $table->string("thumbnail")->nullable();

@@ -19,7 +19,7 @@ class DownloadController extends Controller
             $model->where('nama', 'like', "%$cari%");
         }
 
-        if (!$no_pub || !$no_pub == null || $no_pub != 'Y') {
+        if (!$no_pub && !$no_pub == null && $no_pub != 'Y') {
             $model->where('flag_mcs',5);
         }
         $hasil = $model->get();

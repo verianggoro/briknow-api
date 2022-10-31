@@ -30,11 +30,13 @@ class ManageComSupport extends Controller {
 
             $limit = intval($request->get('limit', 10));
             $offset = intval($request->get('offset', 0));
-            $order = 'asc';
+            $order = 'desc';
             if($request->get('order')) {
                 $order = $request->get('order');
             }
             if($request->get('sort')) {
+                $model->orderBy($request->get('sort'), $order);
+            } else {
                 $model->orderBy('communication_support.tanggal_upload', $order);
             }
             if($request->get('search')) {
@@ -55,7 +57,7 @@ class ManageComSupport extends Controller {
                 "data"      => $data,
                 "totalRow"  => $count,
                 "total"     => $countTotal,
-                "totalData" => $countNotFilter
+                "totalData" => $countNotFilter,
             ],200);
         } catch (\Throwable $th){
             $datas['message']    =   'GET Gagal';
@@ -191,12 +193,15 @@ class ManageComSupport extends Controller {
 
             $limit = intval($request->get('limit', 10));
             $offset = intval($request->get('offset', 0));
-            $order = 'asc';
+            $order = 'desc';
             if($request->get('order')) {
                 $order = $request->get('order');
             }
             if($request->get('sort')) {
+                $model->orderBy($request->get('sort'), $order);
+            } else {
                 $model->orderBy('communication_support.tanggal_upload', $order);
+
             }
             if($request->get('search')) {
                 $model->where('communication_support.title', 'like','%'.$request->get('search').'%');
@@ -312,7 +317,7 @@ class ManageComSupport extends Controller {
 
             $limit = intval($request->get('limit', 10));
             $offset = intval($request->get('offset', 0));
-            $order = 'asc';
+            $order = 'desc';
             if($request->get('order')) {
                 $order = $request->get('order');
             }

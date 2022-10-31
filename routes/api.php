@@ -148,6 +148,8 @@ use Illuminate\Support\Facades\Route;
             Route::get('/getProjectVisitor', 'LaporanController@getProjectVisitor');
             Route::get('/getProjectConsultant', 'LaporanController@getProjectKonsultan');
             Route::get('/getprojectdivisi','LaporanController@getProjectDivisi');
+            Route::get('/strategictopfive','LaporanController@strainittopfive');
+            Route::get('/allPerformance','LaporanController@allPerformance');
 
             #Konsultan
                 Route::get('/consultant/{id}','ConsultantController@index');

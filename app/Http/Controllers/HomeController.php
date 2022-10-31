@@ -724,6 +724,7 @@ class HomeController extends Controller
             ->union($c)
             ->groupBy("tahap")
             ->groupBy("url")
+            ->orderBy("jml", "desc")
             ->get();
 
         $out['data'] = $data;

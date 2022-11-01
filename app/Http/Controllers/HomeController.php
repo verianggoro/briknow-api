@@ -52,7 +52,7 @@ class HomeController extends Controller
             $getRecomInnitiative   = CommunicationSupport::with(['favorite_com' => function($q) {
                 $q->where('user_id', Auth::user()->id);
             }])->where('status','=', 'publish')
-                ->limit(6)->orderby('updated_at','DESC')->get();
+                ->limit(6)->orderby('views','DESC')->get();
             $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
             $queryUker            = Divisi::get();
             $consultant = Consultant::get();
@@ -92,6 +92,7 @@ class HomeController extends Controller
                 $objInni->view          = $items->views;
                 $objInni->nama          = $items->title;
                 $objInni->type_file     = $items->type_file;
+                $objInni->created_at    = $items->created_at;
                 $objInni->updated_at    = $items->updated_at;
                 $objInni->desc          = $items->desc;
                 $objInni->fav           = count($items->favorite_com) > 0 ? 1 : 0;

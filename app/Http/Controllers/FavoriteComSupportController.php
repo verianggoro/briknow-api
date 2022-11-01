@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\FavoriteImplementation;
 use App\MyComsup;
 use Auth;
 
@@ -11,8 +12,12 @@ class FavoriteComSupportController extends Controller {
         //
     }
 
-    public function save($id) {
-        $fav = MyComsup::where('comsup_id', $id)->where('user_id', Auth::user()->id)->first();
+    public function save($table, $id) {
+        if ($table == 'content') {
+            $fav = MyComsup::where('comsup_id', $id)->where('user_id', Auth::user()->id)->first();
+        } else {
+            $fav = FavoriteImplementation::where('imp_id', $id)->where('user_id', Auth::user()->id)->first();
+        }
 
         if ($fav) { //hapus favorit jika ada
             try {
@@ -31,9 +36,14 @@ class FavoriteComSupportController extends Controller {
             }
         } else { //add favorit jika belum
             try {
-                $favorit = new MyComsup;
+                if ($table == 'content') {
+                    $favorit = new MyComsup;
+                    $favorit->comsup_id = $id;
+                } else {
+                    $favorit = new FavoriteImplementation();
+                    $favorit->imp_id = $id;
+                }
                 $favorit->user_id = Auth::user()->id;
-                $favorit->comsup_id = $id;
                 $favorit->save();
 
                 $data['kondisi']    =   1;

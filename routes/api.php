@@ -169,7 +169,7 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/myfavorite','MyFavoriteController@getFavs');
                 Route::post('/bookmark_project/{id}','FavoriteProjectController@save');
                 Route::post('/bookmark_consultant/{id}','FavoriteConsultantController@save');
-                Route::post('/bookmark_comsupport/{id}','FavoriteComSupportController@save');
+                Route::post('/bookmark_comsupport/{table}/{id}','FavoriteComSupportController@save');
                 Route::get('/favorite_proj/{sort}','MyFavoriteController@fav_proj');
                 Route::get('/favorite_cons/{sort}','MyFavoriteController@fav_cons');
                 Route::get('/favorite_com/{sort}','MyFavoriteController@fav_com');

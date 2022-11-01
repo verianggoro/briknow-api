@@ -20,7 +20,7 @@ use App\User;
 use App\UserAchievement;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -49,7 +49,10 @@ class HomeController extends Controller
             $suggest        = Keywords::select('nama', DB::raw('count(*) as num'))->groupby('nama')->orderby('num','desc')->limit(5)->get();
             $leaderboard    = User::orderby('xp','desc')->limit(10)->get();
 
-            $getRecomInnitiative   = CommunicationSupport::where('status','=', 'publish')->limit(6)->orderby('updated_at','DESC')->get();
+            $getRecomInnitiative   = CommunicationSupport::with(['favorite_com' => function($q) {
+                $q->where('user_id', Auth::user()->id);
+            }])->where('status','=', 'publish')
+                ->limit(6)->orderby('updated_at','DESC')->get();
             $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
             $queryUker            = Divisi::get();
             $consultant = Consultant::get();
@@ -91,6 +94,7 @@ class HomeController extends Controller
                 $objInni->type_file     = $items->type_file;
                 $objInni->updated_at    = $items->updated_at;
                 $objInni->desc          = $items->desc;
+                $objInni->fav           = count($items->favorite_com) > 0 ? 1 : 0;
                 $classInni[] = $objInni;
             }
 

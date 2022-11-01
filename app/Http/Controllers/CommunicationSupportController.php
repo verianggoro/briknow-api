@@ -15,7 +15,9 @@ class CommunicationSupportController extends Controller {
 
     public function getCommunicationInitiative(Request $request, $type) {
         try {
-            $model = CommunicationSupport::with(['attach_file'])->where('type_file', $type)
+            $model = CommunicationSupport::with(['attach_file', 'favorite_com' => function($q) {
+                $q->where('user_id', Auth::user()->id);
+            }])->where('type_file', $type)
                 ->where('status',  'publish');
 
             $order = 'asc';
@@ -230,7 +232,9 @@ class CommunicationSupportController extends Controller {
                     'data'  => $data_error
                 ], 400);
             }
-            $model = CommunicationSupport::with(['attach_file'])
+            $model = CommunicationSupport::with(['attach_file', 'favorite_com' => function($q) {
+                $q->where('user_id', Auth::user()->id);
+            }])
                 ->where('communication_support.type_file', $type)
                 ->where('project_id', $project->id)
                 ->where('communication_support.status', 'publish');
@@ -287,9 +291,11 @@ class CommunicationSupportController extends Controller {
 
     public function getAllImplementation(Request $request, $step) {
 
-            $model = DB::table('implementation')
+            $model = Implementation::with(['favorite_implementation' => function ($q) {
+                    $q->where('user_id', Auth::user()->id);
+                }])
                 ->join('projects', 'implementation.project_id', '=', 'projects.id')
-                ->select(DB::raw('implementation.title, implementation.thumbnail, implementation.desc_piloting, 
+                ->select(DB::raw('implementation.id, implementation.title, implementation.thumbnail, implementation.desc_piloting, 
                 implementation.desc_roll_out, implementation.desc_sosialisasi, implementation.views, implementation.slug'))
                 ->where('implementation.status', 'publish');
             $modelCount = Implementation::where('status', 'publish');
@@ -355,7 +361,9 @@ class CommunicationSupportController extends Controller {
 
     public function getOneImplementation($slug) {
         try {
-            $data = Implementation::with(['attach_file', 'consultant','project_managers'])->where('status', 'publish')->where('slug', $slug)->first();
+            $data = Implementation::with(['attach_file', 'consultant','project_managers', 'favorite_implementation' => function ($q) {
+                $q->where('user_id', Auth::user()->id);
+            }])->where('status', 'publish')->where('slug', $slug)->first();
 
             $is_allowed = 0; //dilarang
             if ($data->is_restricted == 1) {
@@ -368,6 +376,12 @@ class CommunicationSupportController extends Controller {
                 }
             } else { //jika tidak bersifat RESTRICTED maka siapa saja yg akses dengan user apapun bisa lolos liat
                 $is_allowed = 1;
+            }
+
+            if (count($data->favorite_implementation) > 0) {
+                $data['favorite'] = 1;
+            } else {
+                $data['favorite'] = 0;
             }
             $data['is_allowed']     =   $is_allowed??0;
 

@@ -77,4 +77,8 @@ class Implementation extends Model {
         return $this->belongsToMany(Consultant::class,'consultant_projects','project_id','consultant_id');
     }
 
+    public function favorite_implementation(){
+        return $this->hasMany(FavoriteImplementation::class,'imp_id');
+    }
+
 }

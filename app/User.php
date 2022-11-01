@@ -76,6 +76,10 @@ class User extends Authenticatable
         return $this->hasMany(MyComsup::class,'user_id');
     }
 
+    public function favorite_implementation(){
+        return $this->hasMany(FavoriteImplementation::class,'user_id');
+    }
+
     public function achievement(){
         return $this->hasMany(UserAchievement::class,'personal_number','personal_number');
     }

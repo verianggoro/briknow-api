@@ -24,8 +24,11 @@ class CommunicationSupportController extends Controller {
             if($request->get('order')) {
                 $order = $request->get('order');
             }
+            $sort= 'views';
+            $model->orderBy($sort, $order);
             if($request->get('sort')) {
-                $model->orderBy($request->get('sort'), $order);
+                $sort = $request->get('sort');
+                $model->orderBy($sort, $order);
             }
             if($request->get('search')) {
                 $model->where('title', 'like','%'.$request->get('search').'%');

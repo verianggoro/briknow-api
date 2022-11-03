@@ -20,7 +20,7 @@ class CommunicationSupportController extends Controller {
             }])->where('type_file', $type)
                 ->where('status',  'publish');
 
-            $order = 'asc';
+            $order = 'desc';
             if($request->get('order')) {
                 $order = $request->get('order');
             }

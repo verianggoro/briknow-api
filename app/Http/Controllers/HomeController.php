@@ -612,19 +612,25 @@ class HomeController extends Controller
             // setting 12 bulan kebelakang
             $yesterday = date("Y-m-d", strtotime( '-0 days' ) );
             $month = date("Y-m-d", strtotime( '-6 months' ) );
-            $urlFE = config('app.FE_url').'managelesson/review';
+            $urlFE = config('app.FE_url').'mylesson/';
+            $data=[];
 
             $query = Lesson_learned::whereBetween("created_at", [$month, $yesterday])
                 ->groupBy("tahap")
-                ->select(DB::raw("tahap, COUNT(tahap) as jml,
-                 CONCAT_WS('/', '{$urlFE}') AS url"))
-                ->get()
-                ->reverse()
-                ->values();
+                ->select(DB::raw("tahap, COUNT(tahap) as jml"))
+                ->get();
 
             // return response()->json($temp);
 
-            $out['data'] = $query;
+            foreach ($query as $key) {
+                $object = new stdClass;
+                $object->tahap = $key->tahap;
+                $object->jml = $key->jml;
+                $object->url = $urlFE.$key->tahap;
+                $data[] = $object;
+            }
+
+            $out['data'] = $data;
 
             return response()->json([
                 "status"    =>  1,

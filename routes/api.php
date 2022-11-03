@@ -150,6 +150,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/getprojectdivisi','LaporanController@getProjectDivisi');
             Route::get('/strategictopfive','LaporanController@strainittopfive');
             Route::get('/allPerformance','LaporanController@allPerformance');
+            Route::get('/allData','LaporanController@allData');
 
             #Konsultan
                 Route::get('/consultant/{id}','ConsultantController@index');

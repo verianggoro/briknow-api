@@ -151,6 +151,7 @@ use Illuminate\Support\Facades\Route;
             Route::get('/strategictopfive','LaporanController@strainittopfive');
             Route::get('/allPerformance','LaporanController@allPerformance');
             Route::get('/allData','LaporanController@allData');
+            Route::get('/allComSupport','LaporanController@allComSupport');
 
             #Konsultan
                 Route::get('/consultant/{id}','ConsultantController@index');

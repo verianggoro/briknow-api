@@ -365,6 +365,14 @@ class DashboardController extends Controller
     }
 
     public function dashboardInitiative() {
+        $type_list  = [
+            "article"           => "Articles",
+            "logo"              => "Icon, Logo, Maskot BRIVO",
+            "infographics"      => "Infographics",
+            "transformation"    => "Transformation Journey",
+            "podcast"           => "Podcast",
+            "video"             => "Video Content",
+            "instagram"         => "Instagram Content"];
 
         $types = CommunicationSupport::select(DB::raw('type_file, SUM(views) as total'))->groupBy('type_file')
             ->orderby('total','desc')->get();
@@ -382,6 +390,7 @@ class DashboardController extends Controller
                 ->orderby('downloads','desc')->take(5)->get();
 
             $data[$key]['tipe']             = $value->type_file;
+            $data[$key]['tipe_nama']        = $type_list[$value->type_file];
             $data[$key]['views_most']       = $views;
             $data[$key]['downloads_most']   = $download;
             $data[$key]['search']           = $sum->total;
@@ -395,6 +404,14 @@ class DashboardController extends Controller
     }
 
     public function dashboardStrategic() {
+        $type_list  = [
+            "article"           => "Articles",
+            "logo"              => "Icon, Logo, Maskot BRIVO",
+            "infographics"      => "Infographics",
+            "transformation"    => "Transformation Journey",
+            "podcast"           => "Podcast",
+            "video"             => "Video Content",
+            "instagram"         => "Instagram Content"];
         $project = Project::whereHas('communication_support')
             ->without(['project_managers', 'divisi', 'keywords', 'consultant', 'lesson_learned', 'comment',
                 'usermaker', 'userchecker', 'usersigner', 'communication_support', 'implementation'])
@@ -408,6 +425,7 @@ class DashboardController extends Controller
                 ->orderby('total','desc')->get();
 
             $search_total = 0;
+            $rowspan = 0;
             $strategic = [];
             foreach($types as $key => $value){
                 $sum = CommunicationSupport::without(['attach_file', 'project'])->where('project_id', $values->id)
@@ -423,11 +441,13 @@ class DashboardController extends Controller
                     ->orderby('downloads','desc')->take(5)->get();
 
                 $strategic[$key]['tipe']             = $value->type_file;
+                $strategic[$key]['tipe_nama']        = $type_list[$value->type_file];
                 $strategic[$key]['views_most']       = $views;
                 $strategic[$key]['downloads_most']   = $download;
                 $strategic[$key]['search']           = $sum->total;
 
                 $search_total += $sum->total;
+                $rowspan += count($views);
             }
 
             $data[$keys]['id'] = $values->id;
@@ -436,6 +456,7 @@ class DashboardController extends Controller
             $data[$keys]['slug'] = $values->slug;
             $data[$keys]['search_total'] = $search_total;
             $data[$keys]['strategic'] = $strategic;
+            $data[$keys]['rowspan'] = $rowspan;
         }
 
         usort($data, function($a, $b) { return $b['search_total'] <=> $a['search_total']; });
@@ -448,6 +469,10 @@ class DashboardController extends Controller
     }
 
     public function dashboardImplementation() {
+        $type_list  = [
+            "piloting"           => "Piloting",
+            "rollout"            => "Roll-Out",
+            "sosialisasi"        => "Sosialisasi"];
         $step = AttachFile::whereNotNull('implementation_id')->select('tipe')->distinct()->get();
 
         $data = [];
@@ -463,6 +488,7 @@ class DashboardController extends Controller
                 ->orderby('implementation.views','desc')->take(5)->get();
 
             $data[$key]['tipe']         = $value->tipe;
+            $data[$key]['tipe_nama']    = $type_list[$value->tipe];
             $data[$key]['search_most']  = $views;
             $data[$key]['search_total'] = $sum->total;
         }

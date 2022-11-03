@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\AttachFile;
 use App\CommunicationSupport;
 use App\ConsultantLog;
 use App\ConsultantProject;
@@ -695,6 +696,132 @@ class LaporanController extends Controller
             $out['dataVendor'] = $dataVendor;
             $out['dataDiv'] = $dataDiv;
             $out['dataYear'] = $dataYear;
+
+            return response()->json([
+                "status"    =>  1,
+                "data"      =>  $out
+            ],200);
+        } catch (\Throwable $th) {
+            $data['message']    =   'Something Went Wrong';
+            return response()->json([
+                "status"    =>  0,
+                "data"      =>  $data
+            ],200);
+        }
+    }
+
+    public function allComSupport() {
+        $type_list  = [
+            "article"           => "Articles",
+            "logo"              => "Icon, Logo, Maskot BRIVO",
+            "infographics"      => "Infographics",
+            "transformation"    => "Transformation Journey",
+            "podcast"           => "Podcast",
+            "video"             => "Video Content",
+            "instagram"         => "Instagram Content"];
+        $type_list2  = [
+            "piloting"           => "Piloting",
+            "rollout"            => "Roll-Out",
+            "sosialisasi"        => "Sosialisasi"];
+        try {
+            // INITIATIVE
+            $types = CommunicationSupport::select(DB::raw('type_file, SUM(views) as total'))->groupBy('type_file')
+                ->orderby('total','desc')->get();
+            $dataInitiative = [];
+            foreach($types as $key => $value){
+                $sum = CommunicationSupport::without(['attach_file', 'project'])->where('type_file', $value->type_file)->where('status', '!=', 'deleted')
+                    ->select(DB::raw('SUM(views) as total'))->first();
+                $views = CommunicationSupport::without(['attach_file', 'project'])
+                    ->select(DB::raw('id, title, views, thumbnail, slug'))
+                    ->where('type_file', $value->type_file)->where('status', '!=', 'deleted')
+                    ->orderby('views','desc')->take(5)->get();
+                $download = CommunicationSupport::without(['attach_file', 'project'])
+                    ->select(DB::raw('id, title, downloads, thumbnail, slug'))
+                    ->where('type_file', $value->type_file)->where('status', '!=', 'deleted')
+                    ->orderby('downloads','desc')->take(5)->get();
+
+                $dataInitiative[$key]['tipe']             = $value->type_file;
+                $dataInitiative[$key]['tipe_nama']        = $type_list[$value->type_file];
+                $dataInitiative[$key]['views_most']       = $views;
+                $dataInitiative[$key]['downloads_most']   = $download;
+                $dataInitiative[$key]['search']           = $sum->total;
+            }
+
+            //Strategic
+            $project = Project::whereHas('communication_support')
+                ->without(['project_managers', 'divisi', 'keywords', 'consultant', 'lesson_learned', 'comment',
+                    'usermaker', 'userchecker', 'usersigner', 'communication_support', 'implementation'])
+                ->select('id', 'nama', 'thumbnail', 'slug')->get();
+
+            $dataStrategic = [];
+            foreach ($project as $keys=>$values) {
+                $types = CommunicationSupport::select(DB::raw('type_file, SUM(views) as total'))
+                    ->where('project_id', $values->id)
+                    ->groupBy('type_file')
+                    ->orderby('total','desc')->get();
+
+                $search_total = 0;
+                $rowspan = 0;
+                $strategic = [];
+                foreach($types as $key => $value){
+                    $sum = CommunicationSupport::without(['attach_file', 'project'])->where('project_id', $values->id)
+                        ->where('type_file', $value->type_file)->where('status', '!=', 'deleted')
+                        ->select(DB::raw('SUM(views) as total'))->first();
+                    $views = CommunicationSupport::without(['attach_file', 'project'])->where('project_id', $values->id)
+                        ->select(DB::raw('id, title, views, thumbnail, slug'))
+                        ->where('type_file', $value->type_file)->where('status', '!=', 'deleted')
+                        ->orderby('views','desc')->take(5)->get();
+                    $download = CommunicationSupport::without(['attach_file', 'project'])->where('project_id', $values->id)
+                        ->select(DB::raw('id, title, downloads, thumbnail, slug'))
+                        ->where('type_file', $value->type_file)->where('status', '!=', 'deleted')
+                        ->orderby('downloads','desc')->take(5)->get();
+
+                    $strategic[$key]['tipe']             = $value->type_file;
+                    $strategic[$key]['tipe_nama']        = $type_list[$value->type_file];
+                    $strategic[$key]['views_most']       = $views;
+                    $strategic[$key]['downloads_most']   = $download;
+                    $strategic[$key]['search']           = $sum->total;
+
+                    $search_total += $sum->total;
+                    $rowspan += count($views);
+                }
+
+                $dataStrategic[$keys]['id'] = $values->id;
+                $dataStrategic[$keys]['nama'] = $values->nama;
+                $dataStrategic[$keys]['thumbnail'] = $values->thumbnail;
+                $dataStrategic[$keys]['slug'] = $values->slug;
+                $dataStrategic[$keys]['search_total'] = $search_total;
+                $dataStrategic[$keys]['strategic'] = $strategic;
+                $dataStrategic[$keys]['rowspan'] = $rowspan;
+            }
+            usort($dataStrategic, function($a, $b) { return $b['search_total'] <=> $a['search_total']; });
+
+            //Implementation
+            $step = AttachFile::whereNotNull('implementation_id')->select('tipe')->distinct()->get();
+
+            $dataImp = [];
+            foreach($step as $key => $value){
+                $sum = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
+                    ->whereHas($value->tipe)->where('status', '!=', 'deleted')
+                    ->select(DB::raw('SUM(views) as total'))->first();
+                $views = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
+                    ->join('projects', 'projects.id', '=', 'implementation.project_id')
+                    ->select(DB::raw('implementation.id as implementation_id, implementation.title, implementation.views,
+                 projects.id as project_id, projects.nama as nama_project, projects.thumbnail, projects.slug'))
+                    ->whereHas($value->tipe)->where('implementation.status', '!=', 'deleted')
+                    ->orderby('implementation.views','desc')->take(5)->get();
+
+                $dataImp[$key]['tipe']         = $value->tipe;
+                $dataImp[$key]['tipe_nama']    = $type_list2[$value->tipe];
+                $dataImp[$key]['search_most']  = $views;
+                $dataImp[$key]['search_total'] = $sum->total;
+            }
+
+            usort($dataImp, function($a, $b) { return $b['search_total'] <=> $a['search_total']; });
+
+            $out['dataInitiative'] = $dataInitiative;
+            $out['dataStrategic'] = $dataStrategic;
+            $out['dataImp'] = $dataImp;
 
             return response()->json([
                 "status"    =>  1,

@@ -118,7 +118,7 @@ class ManageComSupport extends Controller {
         }
     }
 
-    public function getStrategicByProject($slug) {
+    public function getStrategicByProject(Request $request, $slug) {
         try{
 //            $model = CommunicationSupport::with(['attach_file'])->where('communication_support.type_file', $type)->where('communication_support.status', '!=', 'deleted');
             /*$model = Project::join('communication_support', 'projects.id', '=', 'communication_support.project_id')
@@ -141,6 +141,14 @@ class ManageComSupport extends Controller {
                     'data'  => $data_error
                 ], 400);
             }
+            $sort = 'created_at';
+            $order = 'desc';
+            if($request->get('sort')) {
+                $sort = $request->get('sort');
+            }
+            if($request->get('order')) {
+                $order = $request->get('order');
+            }
             $data['project'] = $project;
             $types = CommunicationSupport::where('project_id', $project->id)
                 ->where('status', '!=', 'deleted')->select(DB::raw('type_file, COUNT(id) as total'))
@@ -150,7 +158,8 @@ class ManageComSupport extends Controller {
             foreach($types as $r){
                 $key = array_search($r->type_file, array_column($type_list, 'id'));
                 $datas = CommunicationSupport::where('project_id', $project->id)
-                    ->where('status', '!=', 'deleted')->where('type_file', $r->type_file)->take(5)->get();
+                    ->where('status', '!=', 'deleted')->where('type_file', $r->type_file)
+                    ->orderBy($sort, $order)->take(5)->get();
                 /*$datas_total = CommunicationSupport::where('project_id', $project->id)
                     ->where('status', '!=', 'deleted')->where('type_file', $r->type_file)->count();*/
 

@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Log;
 use Validator;
 
 class KontribusiController extends Controller
@@ -362,11 +363,14 @@ class KontribusiController extends Controller
             // lesson learned
             $tampung_lesson                 =   request()->lesson;
             $tampung_lesson_keterangan      =   request()->lesson_keterangan;
+            $tampung_tahap                  =   request()->tahap;
             if (isset($tampung_lesson)) {
                 for ($i=0; $i < count($tampung_lesson) ; $i++) {
                     if($tampung_lesson[$i] <> '' or $tampung_lesson_keterangan[$i] <> ''){
                         $simpanlesson['project_id']         =   $create_project->id;
+                        $simpanlesson['divisi_id']          =   request()->divisi;
                         $simpanlesson['lesson_learned']     =   $tampung_lesson[$i];
+                        $simpanlesson['tahap']              =   $tampung_tahap[$i];
                         $simpanlesson['detail']             =   $tampung_lesson_keterangan[$i];
                         Lesson_learned::create($simpanlesson);
                     }
@@ -782,12 +786,15 @@ class KontribusiController extends Controller
             // lesson learned
             $tampung_lesson                 =   request()->lesson;
             $tampung_lesson_keterangan      =   request()->lesson_keterangan;
+            $tampung_tahap                  =   request()->tahap;
             if (isset($tampung_lesson)) {
                 Lesson_learned::where('project_id',$cek->id)->delete();
 
                 for ($i=0; $i < count($tampung_lesson) ; $i++) {
                     if($tampung_lesson[$i] <> '' or $tampung_lesson_keterangan[$i] <> ''){
                         $simpanlesson['project_id']         =   $cek->id;
+                        $simpanlesson['divisi_id']          = request()->divisi;
+                        $simpanlesson['tahap']               =   $tampung_tahap[$i];
                         $simpanlesson['lesson_learned']     =   $tampung_lesson[$i];
                         $simpanlesson['detail']             =   $tampung_lesson_keterangan[$i];
                         Lesson_learned::create($simpanlesson);

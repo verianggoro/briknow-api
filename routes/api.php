@@ -184,6 +184,7 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/divisi/all', 'DivisiController@getALlDivisi');
                 Route::get('/divisi/{id}','DivisiController@getDivisi');
                 Route::get('/divisibydirektorat/{sample}','DivisiController@getDivisiByDirektorat');
+                Route::get('/divisi/direktorat/{dir}', 'DivisiController@getDir');
 
             #Pencarian
                 Route::post('/search/{katakunci}','PencarianController@cari');

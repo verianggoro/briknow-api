@@ -17,8 +17,11 @@ class CommunicationSupportController extends Controller {
         try {
             $model = CommunicationSupport::with(['attach_file', 'favorite_com' => function($q) {
                 $q->where('user_id', Auth::user()->id);
-            }])->where('type_file', $type)
-                ->where('status',  'publish');
+            }])->where('status',  'publish');
+
+            if ($type !== 'all'){
+                $model->where('type_file', $type);
+            }
 
             $order = 'desc';
             if($request->get('order')) {
@@ -44,7 +47,28 @@ class CommunicationSupportController extends Controller {
             if($request->get('divisi')) {
                 $where_in = explode(",",$request->get('divisi'));
                 $model->whereHas('project', function ($q) use ($where_in) {
-                    $q->whereIn('divisi_id', $where_in);
+                    $q->where('divisi_id', $where_in);
+                });
+            }
+
+            if($request->get('direktorat')) {
+                $dir = $request->get('direktorat');
+                $dir = str_replace('-', ' ', $dir);
+                $dir = str_replace('%20', ' ', $dir);
+
+
+                if ($dir === 'NULL') {
+                    $queryDiv = Divisi::where('direktorat', NULL)->get();
+                } else {
+                    $queryDiv = Divisi::where('direktorat', 'like', '%'.$dir.'%')->get();
+                }
+
+                $temp=[];
+                foreach ($queryDiv as $itemDiv) {
+                    $temp[] = $itemDiv->id;
+                }
+                $model->whereHas('project', function ($q) use ($temp) {
+                    $q->whereIn('divisi_id', $temp);
                 });
             }
 
@@ -117,6 +141,24 @@ class CommunicationSupportController extends Controller {
                         $q->whereNotNull('desc_sosialisasi');
                     });
                 }
+            }
+            if($request->get('direktorat')) {
+                $dir = $request->get('direktorat');
+                $dir = str_replace('-', ' ', $dir);
+                $dir = str_replace('%20', ' ', $dir);
+
+
+                if ($dir === 'NULL') {
+                    $queryDiv = Divisi::where('direktorat', NULL)->get();
+                } else {
+                    $queryDiv = Divisi::where('direktorat', 'like', '%'.$dir.'%')->get();
+                }
+
+                $temp=[];
+                foreach ($queryDiv as $itemDiv) {
+                    $temp[] = $itemDiv->id;
+                }
+                $model->whereIn('divisi_id', $temp);;
             }
 
             $data = $model->get();
@@ -342,6 +384,25 @@ class CommunicationSupportController extends Controller {
             if($request->get('divisi')) {
                 $where_in = explode(",",$request->get('divisi'));
                 $model->whereIn('projects.divisi_id', $where_in);
+            }
+
+            if ($request->get('direktorat')) {
+                $dir = $request->get('direktorat');
+                $dir = str_replace('-', ' ', $dir);
+                $dir = str_replace('%20', ' ', $dir);
+
+
+                if ($dir === 'NULL') {
+                    $queryDiv = Divisi::where('direktorat', NULL)->get();
+                } else {
+                    $queryDiv = Divisi::where('direktorat', 'like', '%' . $dir . '%')->get();
+                }
+
+                $temp = [];
+                foreach ($queryDiv as $itemDiv) {
+                    $temp[] = $itemDiv->id;
+                }
+                $model->whereIn('projects.divisi_id', $temp);;
             }
 
             $total = $model->get();

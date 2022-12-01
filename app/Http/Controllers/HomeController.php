@@ -56,6 +56,8 @@ class HomeController extends Controller
             $querydirektorat  = Divisi::select('direktorat')->groupBy('direktorat')->get();
             $queryUker            = Divisi::get();
             $consultant = Consultant::get();
+            $allLessonLearn = Lesson_learned::get();
+            $lessonlearn = Lesson_learned::distinct()->get(['tahap']);
             $levelling_user = [];
             foreach ($leaderboard as $l){
                 $ceklevel               = Level::where('xp', '<=',$l->xp)->orderby('xp','desc')->first();
@@ -103,6 +105,8 @@ class HomeController extends Controller
             $data['cominitiative'] =   $classInni;
             $data['owner_project']  =   $getowner;
             $data['consultant']     =   $getconsultant;
+            $data['allLessonLearn'] = $allLessonLearn;
+            $data['lessonlearn']     =   $lessonlearn;
             $data['consultant_filter']     =   $consultant;
             $data['suggest']        =   $suggest;
             $data['leaderboard']    =   $levelling_user;
@@ -616,11 +620,12 @@ class HomeController extends Controller
             $data=[];
 
             $query = Lesson_learned::whereBetween("created_at", [$month, $yesterday])
-                ->groupBy("tahap")
+                // ->without(['attach_file', 'project'])
+                // ->join('projects', 'lesson_learneds.project_id', '=', 'projects.id')
                 ->select(DB::raw("tahap, COUNT(tahap) as jml"))
+                // ->where('projects.flag_mcs', 5)
+                ->groupBy("tahap")
                 ->get();
-
-            // return response()->json($temp);
 
             foreach ($query as $key) {
                 $object = new stdClass;
@@ -654,6 +659,7 @@ class HomeController extends Controller
                 ->join('projects', 'communication_support.project_id', '=', 'projects.id')
                 ->select(DB::raw("projects.nama, sum(communication_support.views) as jml, 
                 CONCAT_WS('/', '{$urlFE}', projects.slug) AS url"))
+                ->where('projects.flag_mcs', 5)
                 ->groupBy("projects.nama")
                 ->groupBy("url")
                 ->orderBy('jml', 'DESC')
@@ -690,7 +696,8 @@ class HomeController extends Controller
         $urlFE = config('app.FE_url').'managecommunication/communicationinitiative';
         $vend = CommunicationSupport::without(['attach_file', 'project'])
             ->select(DB::raw("type_file, sum(views) as jml, 
-                CONCAT_WS('/', '{$urlFE}', type_file) AS url"))
+                CONCAT_WS('/', '{$urlFE}', type_file, 'publish') AS url"))
+            ->where('status', 'publish')
             ->groupBy("type_file")
             ->groupBy("url")
             ->orderBy('jml', 'DESC')
@@ -712,24 +719,25 @@ class HomeController extends Controller
             "data"      =>  $out
         ],200);
     }
+
     //count implementation
-    public function countImplementation($stage="default"){
+    public function countImplementation($stage = "default"){
 
         $urlFE = config('app.FE_url').'managecommunication/implementation';
         $b = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
-            ->select(DB::raw("'Roll-Out' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'roll-out') AS url"))
+            ->select(DB::raw("'Roll-Out' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'roll-out/publish') AS url"))
             ->whereNotNull('desc_roll_out')
             ->groupBy("tahap")
             ->groupBy("url");
 
         $c = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
-            ->select(DB::raw("'Sosialisasi' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'sosialisasi') AS url"))
+            ->select(DB::raw("'Sosialisasi' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'sosialisasi/publish') AS url"))
             ->whereNotNull('desc_sosialisasi')
             ->groupBy("tahap")
             ->groupBy("url");
 
         $data = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
-            ->select(DB::raw("'Piloting' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'piloting') AS url"))
+            ->select(DB::raw("'Piloting' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'piloting/publish') AS url"))
             ->whereNotNull('desc_piloting')
             ->union($b)
             ->union($c)

@@ -47,11 +47,10 @@ class MyLessonLearnedController extends Controller
                 'data'      =>  $data
             ],200);
         }
-
     }
 
     public function getLessonLearnedPublic(Request $request){
-        $validator= Validator::make($request-> all(), [
+        $validator = Validator::make($request->all(), [
             'tahap' => 'nullable',
             'divisi' => 'nullable',
             'search' => 'nullable'
@@ -205,6 +204,8 @@ class MyLessonLearnedController extends Controller
                     ->get();
             }
         }
+
+        // $asc = Project::all()->orderBy('nama', 'ASC')->get();
 
         return response()->json([
             "message"   => "GET Berhasil",

@@ -20,10 +20,12 @@ use Illuminate\Support\Facades\Auth;
 
 use Validator;
 
-class ManageComSupport extends Controller {
+class ManageComSupport extends Controller
+{
 
-    public function getAllComInitiative(Request $request, $type) {
-        try{
+    public function getAllComInitiative(Request $request, $type, $status = null)
+    {
+        try {
             $model = CommunicationSupport::with(['attach_file'])
                 ->where('communication_support.type_file', $type)
                 ->where('communication_support.status', '!=', 'deleted');
@@ -31,16 +33,55 @@ class ManageComSupport extends Controller {
             $limit = intval($request->get('limit', 10));
             $offset = intval($request->get('offset', 0));
             $order = 'desc';
-            if($request->get('order')) {
+            if ($request->get('order')) {
                 $order = $request->get('order');
             }
-            if($request->get('sort')) {
+            if ($request->get('sort')) {
                 $model->orderBy($request->get('sort'), $order);
             } else {
                 $model->orderBy('communication_support.tanggal_upload', $order);
             }
-            if($request->get('search')) {
-                $model->where('communication_support.title', 'like','%'.$request->get('search').'%');
+            if ($request->get('search')) {
+                $model->where('communication_support.title', 'like', '%' . $request->get('search') . '%');
+            }
+
+            if (!empty($status)) {
+                if ($type == 'article') {
+                    $model = CommunicationSupport::with(['attach_file'])
+                        ->where('communication_support.type_file', 'article')
+                        ->where('communication_support.status', 'publish');
+                } else if ($type == 'logo') {
+                    $model = CommunicationSupport::with(['attach_file'])
+                        ->where('communication_support.type_file', 'logo')
+                        ->where('communication_support.status', 'publish');
+                } else if ($type == 'infographics') {
+                    $model = CommunicationSupport::with(['attach_file'])
+                        ->where('communication_support.type_file', 'infographics')
+                        ->where('communication_support.status', 'publish');
+                } else if ($type == 'transformation') {
+                    $model = CommunicationSupport::with(['attach_file'])
+                        ->where('communication_support.type_file', 'transformation')
+                        ->where('communication_support.status', 'publish');
+                } else if ($type == 'podcast') {
+                    $model = CommunicationSupport::with(['attach_file'])
+                        ->where('communication_support.type_file', 'podcast')
+                        ->where('communication_support.status', 'publish');
+                } else if ($type == 'video') {
+                    $model = CommunicationSupport::with(['attach_file'])
+                        ->where('communication_support.type_file', 'video')
+                        ->where('communication_support.status', 'publish');
+                } else if ($type == 'instagram') {
+                    $model = CommunicationSupport::with(['attach_file'])
+                        ->where('communication_support.type_file', 'instagram')
+                        ->where('communication_support.status', 'publish');
+                } else {
+                    $datas['message']    =   'GET Gagal';
+                    return response()->json([
+                        'status'    =>  0,
+                        'data'      =>  $datas,
+                        'message'   => 'Tahap Communication Initiative tidak ditemukan'
+                    ], 200);
+                }
             }
 
             $total = $model->get();
@@ -48,8 +89,13 @@ class ManageComSupport extends Controller {
 
             $count = count($data);
             $countTotal = count($total);
-            $countNotFilter = CommunicationSupport::with(['attach_file'])
-                ->where('type_file', $type)->where('status', '!=', 'deleted')->count();
+            if (!empty($status)) {
+                $countNotFilter = CommunicationSupport::with(['attach_file'])
+                    ->where('type_file', $type)->where('status', 'publish')->count();
+            } else {
+                $countNotFilter = CommunicationSupport::with(['attach_file'])
+                    ->where('type_file', $type)->where('status', '!=', 'deleted')->count();
+            }
 
             return response()->json([
                 "message"   => "GET Berhasil",
@@ -58,37 +104,38 @@ class ManageComSupport extends Controller {
                 "totalRow"  => $count,
                 "total"     => $countTotal,
                 "totalData" => $countNotFilter,
-            ],200);
-        } catch (\Throwable $th){
+            ], 200);
+        } catch (\Throwable $th) {
             $datas['message']    =   'GET Gagal';
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $datas,
                 'error' => $th
-            ],200);
+            ], 200);
         }
     }
 
-    public function getAllStrategic(Request $request) {
-        try{
-//            $model = CommunicationSupport::with(['attach_file'])->where('communication_support.type_file', $type)->where('communication_support.status', '!=', 'deleted');
+    public function getAllStrategic(Request $request)
+    {
+        try {
+            //            $model = CommunicationSupport::with(['attach_file'])->where('communication_support.type_file', $type)->where('communication_support.status', '!=', 'deleted');
             /*$model = Project::join('communication_support', 'projects.id', '=', 'communication_support.project_id')
                 ->where('communication_support.status', '!=', 'deleted');*/
-            $model = Project::whereHas('communication_support', function($q) {
+            $model = Project::whereHas('communication_support', function ($q) {
                 $q->where('status', '!=', 'deleted');
             });
 
             $limit = intval($request->get('limit', 10));
             $offset = intval($request->get('offset', 0));
             $order = 'asc';
-            if($request->get('order')) {
+            if ($request->get('order')) {
                 $order = $request->get('order');
             }
-            if($request->get('sort')) {
+            if ($request->get('sort')) {
                 $model->orderBy('projects.created_at', $order);
             }
-            if($request->get('search')) {
-                $model->where('projects.nama', 'like','%'.$request->get('search').'%');
+            if ($request->get('search')) {
+                $model->where('projects.nama', 'like', '%' . $request->get('search') . '%');
             }
 
             $total = $model->get();
@@ -96,7 +143,7 @@ class ManageComSupport extends Controller {
 
             $count = count($data);
             $countTotal = count($total);
-            $countNotFilter = Project::whereHas('communication_support', function($q) {
+            $countNotFilter = Project::whereHas('communication_support', function ($q) {
                 $q->where('status', '!=', 'deleted');
             })->count();
 
@@ -107,20 +154,21 @@ class ManageComSupport extends Controller {
                 "totalRow"  => $count,
                 "total"     => $countTotal,
                 "totalData" => $countNotFilter
-            ],200);
-        } catch (\Throwable $th){
+            ], 200);
+        } catch (\Throwable $th) {
             $datas['message']    =   'GET Gagal';
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $datas,
                 'error' => $th
-            ],200);
+            ], 200);
         }
     }
 
-    public function getStrategicByProject(Request $request, $slug) {
-        try{
-//            $model = CommunicationSupport::with(['attach_file'])->where('communication_support.type_file', $type)->where('communication_support.status', '!=', 'deleted');
+    public function getStrategicByProject(Request $request, $slug)
+    {
+        try {
+            //            $model = CommunicationSupport::with(['attach_file'])->where('communication_support.type_file', $type)->where('communication_support.status', '!=', 'deleted');
             /*$model = Project::join('communication_support', 'projects.id', '=', 'communication_support.project_id')
                 ->where('communication_support.status', '!=', 'deleted');*/
             $type_list = [
@@ -132,7 +180,7 @@ class ManageComSupport extends Controller {
                 ["id" => "video", "name" => "Video Content"],
                 ["id" => "instagram", "name" => "Instagram Content"],
             ];
-            $project        = Project::where('slug',$slug)->first();
+            $project        = Project::where('slug', $slug)->first();
             if (!$project) {
                 $data_error['message'] = 'Proyek tidak ditemukan!';
                 $data_error['error_code'] = 1; //error
@@ -143,19 +191,19 @@ class ManageComSupport extends Controller {
             }
             $sort = 'created_at';
             $order = 'desc';
-            if($request->get('sort')) {
+            if ($request->get('sort')) {
                 $sort = $request->get('sort');
             }
-            if($request->get('order')) {
+            if ($request->get('order')) {
                 $order = $request->get('order');
             }
             $data['project'] = $project;
             $types = CommunicationSupport::where('project_id', $project->id)
                 ->where('status', '!=', 'deleted')->select(DB::raw('type_file, COUNT(id) as total'))
-                ->groupBy('type_file')->orderby('total','desc')->get();
+                ->groupBy('type_file')->orderby('total', 'desc')->get();
 
             $type_file = [];
-            foreach($types as $r){
+            foreach ($types as $r) {
                 $key = array_search($r->type_file, array_column($type_list, 'id'));
                 $datas = CommunicationSupport::where('project_id', $project->id)
                     ->where('status', '!=', 'deleted')->where('type_file', $r->type_file)
@@ -173,20 +221,21 @@ class ManageComSupport extends Controller {
                 "message"   => "GET Berhasil",
                 "status"    => 1,
                 "data"      => $data,
-            ],200);
-        } catch (\Throwable $th){
+            ], 200);
+        } catch (\Throwable $th) {
             $datas['message']    =   'GET Gagal';
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $datas,
                 'error' => $th
-            ],200);
+            ], 200);
         }
     }
 
-    public function getStrategicByProjectAndType(Request $request, $slug, $type) {
-        try{
-            $project        = Project::where('slug',$slug)->first();
+    public function getStrategicByProjectAndType(Request $request, $slug, $type)
+    {
+        try {
+            $project        = Project::where('slug', $slug)->first();
             if (!$project) {
                 $data_error['message'] = 'Proyek tidak ditemukan!';
                 $data_error['error_code'] = 1; //error
@@ -203,17 +252,16 @@ class ManageComSupport extends Controller {
             $limit = intval($request->get('limit', 10));
             $offset = intval($request->get('offset', 0));
             $order = 'desc';
-            if($request->get('order')) {
+            if ($request->get('order')) {
                 $order = $request->get('order');
             }
-            if($request->get('sort')) {
+            if ($request->get('sort')) {
                 $model->orderBy($request->get('sort'), $order);
             } else {
                 $model->orderBy('communication_support.tanggal_upload', $order);
-
             }
-            if($request->get('search')) {
-                $model->where('communication_support.title', 'like','%'.$request->get('search').'%');
+            if ($request->get('search')) {
+                $model->where('communication_support.title', 'like', '%' . $request->get('search') . '%');
             }
 
             $total = $model->get();
@@ -234,18 +282,19 @@ class ManageComSupport extends Controller {
                 "totalRow"  => $count,
                 "total"     => $countTotal,
                 "totalData" => $countNotFilter
-            ],200);
-        } catch (\Throwable $th){
+            ], 200);
+        } catch (\Throwable $th) {
             $datas['message']    =   'GET Gagal';
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $datas,
                 'error' => $th
-            ],200);
+            ], 200);
         }
     }
 
-    public function setStatusComInit($status, $id) {
+    public function setStatusComInit($status, $id)
+    {
         try {
             $sekarang = Carbon::now();
 
@@ -281,78 +330,111 @@ class ManageComSupport extends Controller {
             CommunicationSupport::where('id', $id)
                 ->update($updateDetails);
 
-            $data['message']    =   ucwords($status).' Proyek Berhasil.';
-            $data['toast']      =   ucwords($status) == 'Publish' ? 'Proyek berhasil diterbitkan' : ucwords($status).' Berhasil.';
+            $data['message']    =   ucwords($status) . ' Proyek Berhasil.';
+            $data['toast']      =   ucwords($status) == 'Publish' ? 'Proyek berhasil diterbitkan' : ucwords($status) . ' Berhasil.';
             return response()->json([
                 "status"    => 1,
                 "data"      => $data,
-            ],200);
+            ], 200);
         } catch (\Throwable $th) {
-            $data['message']    =   ucwords($status).' Proyek Gagal';
-            $data['toast']      =   ucwords($status) == 'Publish' ? 'Project gagal diterbitkan!' : ucwords($status).' Proyek Gagal.';
+            $data['message']    =   ucwords($status) . ' Proyek Gagal';
+            $data['toast']      =   ucwords($status) == 'Publish' ? 'Project gagal diterbitkan!' : ucwords($status) . ' Proyek Gagal.';
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $data
-            ],200);
+            ], 200);
         }
     }
 
-    public function deleteComInit($id) {
+    public function deleteComInit($id)
+    {
         try {
             $sekarang = Carbon::now();
 
             CommunicationSupport::where('id', $id)
-                ->update(['status' => 'deleted', 'deleted_at' => $sekarang,
-                    'deleted_by' => Auth::User()->personal_number, 'updated_by' => Auth::User()->personal_number]);
+                ->update([
+                    'status' => 'deleted', 'deleted_at' => $sekarang,
+                    'deleted_by' => Auth::User()->personal_number, 'updated_by' => Auth::User()->personal_number
+                ]);
 
             $data['message']    =  'Delete Proyek Berhasil.';
             return response()->json([
                 "status"    => 1,
                 "data"      => $data,
-            ],200);
+            ], 200);
         } catch (\Throwable $th) {
             $data['message']    =   'Delete Proyek Gagal';
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $data
-            ],200);
+            ], 200);
         }
     }
 
-    public function getAllImplementation(Request $request, $step) {
-        try{
+    public function getAllImplementation(Request $request, $step, $status = null)
+    {
+        try {
             $model = Implementation::where('status', '!=', 'deleted');
             $modelCount = Implementation::where('status', '!=', 'deleted');
 
             $limit = intval($request->get('limit', 10));
             $offset = intval($request->get('offset', 0));
             $order = 'desc';
-            if($request->get('order')) {
+            if ($request->get('order')) {
                 $order = $request->get('order');
             }
-            if($request->get('sort')) {
+            if ($request->get('sort')) {
                 $model->orderBy('created_at', $order);
             }
-            if($request->get('search')) {
-                $model->where('title', 'like','%'.$request->get('search').'%');
+            if ($request->get('search')) {
+                $model->where('title', 'like', '%' . $request->get('search') . '%');
             }
 
-            if ($step == 'piloting') {
-                $model->whereNotNull('desc_piloting');
-                $modelCount->whereNotNull('desc_piloting');
-            } else if ($step == 'roll-out') {
-                $model->whereNotNull('desc_roll_out');
-                $modelCount->whereNotNull('desc_roll_out');
-            } else if ($step == 'sosialisasi') {
-                $model->whereNotNull('desc_sosialisasi');
-                $modelCount->whereNotNull('desc_sosialisasi');
+            if (!empty($status)) {
+                if ($step == 'piloting') {
+                    $model = Implementation::where('status', 'publish');
+                    $modelCount = Implementation::where('status', 'publish');
+        
+                    $model->whereNotNull('desc_piloting');
+                    $modelCount->whereNotNull('desc_piloting');
+                } else if ($step == 'roll-out') {
+                    $model = Implementation::where('status', 'publish');
+                    $modelCount = Implementation::where('status', 'publish');
+
+                    $model->whereNotNull('desc_roll_out');
+                    $modelCount->whereNotNull('desc_roll_out');
+                } else if ($step == 'sosialisasi') {
+                    $model = Implementation::where('status', 'publish');
+                    $modelCount = Implementation::where('status', 'publish');
+                    
+                    $model->whereNotNull('desc_sosialisasi');
+                    $modelCount->whereNotNull('desc_sosialisasi');
+                } else {
+                    $datas['message']    =   'GET Gagal';
+                    return response()->json([
+                        'status'    =>  0,
+                        'data'      =>  $datas,
+                        'message'   => 'Tahap Implementasi tidak ditemukan'
+                    ], 200);
+                }
             } else {
-                $datas['message']    =   'GET Gagal';
-                return response()->json([
-                    'status'    =>  0,
-                    'data'      =>  $datas,
-                    'message'   => 'Tahap Implementasi tidak ditemukan'
-                ],200);
+                if ($step == 'piloting') {
+                    $model->whereNotNull('desc_piloting');
+                    $modelCount->whereNotNull('desc_piloting');
+                } else if ($step == 'roll-out') {
+                    $model->whereNotNull('desc_roll_out');
+                    $modelCount->whereNotNull('desc_roll_out');
+                } else if ($step == 'sosialisasi') {
+                    $model->whereNotNull('desc_sosialisasi');
+                    $modelCount->whereNotNull('desc_sosialisasi');
+                } else {
+                    $datas['message']    =   'GET Gagal';
+                    return response()->json([
+                        'status'    =>  0,
+                        'data'      =>  $datas,
+                        'message'   => 'Tahap Implementasi tidak ditemukan'
+                    ], 200);
+                }
             }
 
             $total = $model->get();
@@ -369,18 +451,19 @@ class ManageComSupport extends Controller {
                 "totalRow"  => $count,
                 "total"     => $countTotal,
                 "totalData" => $countNotFilter
-            ],200);
-        } catch (\Throwable $th){
+            ], 200);
+        } catch (\Throwable $th) {
             $datas['message']    =   'GET Gagal';
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $datas,
                 'error'     => $th
-            ],200);
+            ], 200);
         }
     }
 
-    public function setStatusImplementation($status, $id) {
+    public function setStatusImplementation($status, $id)
+    {
         try {
             $sekarang = Carbon::now();
 
@@ -416,45 +499,49 @@ class ManageComSupport extends Controller {
             Implementation::where('id', $id)
                 ->update($updateDetails);
 
-            $data['message']    =   ucwords($status).' Proyek Berhasil.';
-            $data['toast']      =   ucwords($status) == 'Publish' ? 'Proyek berhasil diterbitkan' : ucwords($status).' Berhasil.';
+            $data['message']    =   ucwords($status) . ' Proyek Berhasil.';
+            $data['toast']      =   ucwords($status) == 'Publish' ? 'Proyek berhasil diterbitkan' : ucwords($status) . ' Berhasil.';
             return response()->json([
                 "status"    => 1,
                 "data"      => $data,
-            ],200);
+            ], 200);
         } catch (\Throwable $th) {
-            $data['message']    =   ucwords($status).' Proyek Gagal';
-            $data['toast']      =   ucwords($status) == 'Publish' ? 'Project gagal diterbitkan!' : ucwords($status).' Proyek Gagal.';
+            $data['message']    =   ucwords($status) . ' Proyek Gagal';
+            $data['toast']      =   ucwords($status) == 'Publish' ? 'Project gagal diterbitkan!' : ucwords($status) . ' Proyek Gagal.';
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $data
-            ],200);
+            ], 200);
         }
     }
 
-    public function deleteImplementation($id) {
+    public function deleteImplementation($id)
+    {
         try {
             $sekarang = Carbon::now();
 
             Implementation::where('id', $id)
-                ->update(['status' => 'deleted', 'deleted_at' => $sekarang,
-                    'deleted_by' => Auth::User()->personal_number, 'updated_by' => Auth::User()->personal_number]);
+                ->update([
+                    'status' => 'deleted', 'deleted_at' => $sekarang,
+                    'deleted_by' => Auth::User()->personal_number, 'updated_by' => Auth::User()->personal_number
+                ]);
 
             $data['message']    =  'Delete Proyek Berhasil.';
             return response()->json([
                 "status"    => 1,
                 "data"      => $data,
-            ],200);
+            ], 200);
         } catch (\Throwable $th) {
             $data['message']    =   'Delete Proyek Gagal';
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $data
-            ],200);
+            ], 200);
         }
     }
 
-    public function form_content($slug = "*") {
+    public function form_content($slug = "*")
+    {
         $type_file = (object) array(
             array("value" => "article", "name" => "Article"),
             array("value" => "logo", "name" => "Icon, Logo, Maskot BRIVO"),
@@ -486,18 +573,19 @@ class ManageComSupport extends Controller {
             return response()->json([
                 "status"    => '1',
                 "data"      => $data
-            ],200);
+            ], 200);
         } catch (\Throwable $th) {
             $data['message']    =   'Something Went Wrong';
             return response()->json([
                 "status"    =>  0,
                 "data"      =>  $data,
                 "error"     => $th
-            ],200);
+            ], 200);
         }
     }
 
-    public function form_implementation($slug = "*") {
+    public function form_implementation($slug = "*")
+    {
         try {
             $data   = [];
 
@@ -506,9 +594,9 @@ class ManageComSupport extends Controller {
             } else {
                 $datas = Implementation::where('implementation.slug', $slug)->first();
                 if ($datas->is_restricted == 1) {
-                    $user_access = explode(",",$datas->user_access);
+                    $user_access = explode(",", $datas->user_access);
                     $access = [];
-                    foreach($user_access as $u){
+                    foreach ($user_access as $u) {
                         $user = User::where('personal_number', $u)->first();
                         $access[] = $user;
                     }
@@ -534,17 +622,18 @@ class ManageComSupport extends Controller {
             return response()->json([
                 "status"    => '1',
                 "data"      => $data
-            ],200);
+            ], 200);
         } catch (\Throwable $th) {
             $data['message']    =   'Something Went Wrong';
             return response()->json([
                 "status"    =>  0,
                 "data"      =>  $data
-            ],200);
+            ], 200);
         }
     }
 
-    public function createContent($id = "*") {
+    public function createContent($id = "*")
+    {
         $validator = Validator::make(request()->all(), [
             'thumbnail'         => "required",
             'title'             => "required",
@@ -567,14 +656,14 @@ class ManageComSupport extends Controller {
         // date
         date_default_timezone_set('Asia/Jakarta');
         $now = Carbon::now();
-        $waktu = $now->year."".$now->month."".$now->day."".$now->hour."".$now->minute."".$now->second;
+        $waktu = $now->year . "" . $now->month . "" . $now->day . "" . $now->hour . "" . $now->minute . "" . $now->second;
 
         if (request()->is_new_project == 1) {
             $project = Project::create([
                 'divisi_id'             => request()->divisi,
                 'project_managers_id'   => 0,
                 'nama'                  => request()->project_nama,
-                'slug'                  => $waktu."-".\Str::slug(request()->project_nama),
+                'slug'                  => $waktu . "-" . \Str::slug(request()->project_nama),
                 'thumbnail'             => request()->thumbnail,
                 'deskripsi'             => '-',
                 'metodologi'            => '-',
@@ -596,7 +685,7 @@ class ManageComSupport extends Controller {
             $create = CommunicationSupport::create([
                 'project_id'        => $project_id,
                 'title'             => request()->title,
-                'slug'              => $waktu."-".\Str::slug(request()->title),
+                'slug'              => $waktu . "-" . \Str::slug(request()->title),
                 'type_file'         => request()->file_type,
                 'desc'              => request()->deskripsi,
                 'status'            => 'review',
@@ -608,9 +697,9 @@ class ManageComSupport extends Controller {
             // attach
             $tampung_attach     =   request()->attach;
             if (isset($tampung_attach)) {
-                for ($i=0; $i < count($tampung_attach) ; $i++) {
-                    $cek = TempUpload::where('path',$tampung_attach[$i])->first();
-                    if($cek){
+                for ($i = 0; $i < count($tampung_attach); $i++) {
+                    $cek = TempUpload::where('path', $tampung_attach[$i])->first();
+                    if ($cek) {
                         $attach['com_id']       = $create->id;
                         $attach['tipe']         = 'content';
                         $attach['nama']         = $cek->nama_file;
@@ -624,7 +713,7 @@ class ManageComSupport extends Controller {
                 }
             }
         } else {
-            $upd    =   CommunicationSupport::where('id',$id)->first();
+            $upd    =   CommunicationSupport::where('id', $id)->first();
             if (!$upd) {
                 $data_error['message'] = 'Project Not Found';
                 $data_error['error_code'] = 1; //error
@@ -636,7 +725,7 @@ class ManageComSupport extends Controller {
 
             $data_new['project_id']         = $project_id;
             $data_new['title']              = request()->title;
-            $data_new['slug']               = $waktu."-".\Str::slug(request()->title);
+            $data_new['slug']               = $waktu . "-" . \Str::slug(request()->title);
             $data_new['desc']               = request()->deskripsi;
             $data_new['tanggal_upload']     = request()->tgl_upload;
             $data_new['thumbnail']          = request()->thumbnail;
@@ -646,13 +735,13 @@ class ManageComSupport extends Controller {
 
             $tampung_attach     =   request()->attach;
             if (isset($tampung_attach)) {
-                AttachFile::whereNotIn('url_file', $tampung_attach)->where('com_id',$id)->delete();
+                AttachFile::whereNotIn('url_file', $tampung_attach)->where('com_id', $id)->delete();
             }
 
             if (isset($tampung_attach)) {
-                for ($i=0; $i < count($tampung_attach) ; $i++) {
-                    $cek = TempUpload::where('path',$tampung_attach[$i])->first();
-                    if($cek){
+                for ($i = 0; $i < count($tampung_attach); $i++) {
+                    $cek = TempUpload::where('path', $tampung_attach[$i])->first();
+                    if ($cek) {
                         $attach['com_id']       = $id;
                         $attach['tipe']         = "content";
                         $attach['nama']         = $cek->nama_file;
@@ -667,7 +756,7 @@ class ManageComSupport extends Controller {
             }
         }
 
-        $temp = TempUpload::where('path',request()->thumbnail)->first();
+        $temp = TempUpload::where('path', request()->thumbnail)->first();
         if ($temp) {
             $temp->delete();
         }
@@ -685,17 +774,17 @@ class ManageComSupport extends Controller {
         return response()->json([
             "status"    =>  1,
             "data"      => $data
-        ],200);
-
+        ], 200);
     }
 
-    public function createImplementation($id = "*") {
+    public function createImplementation($id = "*")
+    {
         $validator = Validator::make(request()->all(), [
             'thumbnail'     => "required",
             'direktorat'    => "required",
             'divisi'        => 'required',
             'project'       => 'required',
-            'title'         => 'required',
+            // 'title'         => 'required',
             'status'        => 'required',
             'tgl_mulai'     => 'required',
             'pm'            => 'required',
@@ -723,44 +812,44 @@ class ManageComSupport extends Controller {
         // date
         date_default_timezone_set('Asia/Jakarta');
         $now = Carbon::now();
-        $waktu = $now->year."".$now->month."".$now->day."".$now->hour."".$now->minute."".$now->second;
+        $waktu = $now->year . "" . $now->month . "" . $now->day . "" . $now->hour . "" . $now->minute . "" . $now->second;
 
-        $cekChecker =   User::where('personal_number',(int)request()->checker)->first();
+        $cekChecker =   User::where('personal_number', (int)request()->checker)->first();
         if (isset($cekChecker->personal_number)) {
             $dataChecker = $cekChecker;
-        }else{
-            $cheking = $this->getDataUser(request()->token_bri,(int)request()->checker);
-            if($cheking == false){
+        } else {
+            $cheking = $this->getDataUser(request()->token_bri, (int)request()->checker);
+            if ($cheking == false) {
                 $data['message']    =   'Get Data Checker Failed';
                 $data['error_code'] = 0; //error
                 return response()->json([
                     'status'    =>  0,
                     'data'      =>  $data
-                ],200);
-            }else{
+                ], 200);
+            } else {
                 $dataChecker    =   $cheking;
             }
         }
 
         // cek akun signer
-        $cekSigner =   User::where('personal_number',(int)request()->signer)->first();
+        $cekSigner =   User::where('personal_number', (int)request()->signer)->first();
         if (isset($cekSigner->personal_number)) {
             $dataSigner = $cekSigner;
-        }else{
-            $cheking = $this->getDataUser(request()->token_bri,(int)request()->signer);
-            if($cheking == false){
+        } else {
+            $cheking = $this->getDataUser(request()->token_bri, (int)request()->signer);
+            if ($cheking == false) {
                 $data['message']    =   'Get Data Signer Failed';
                 $data['error_code'] = 0; //error
                 return response()->json([
                     'status'    =>  0,
                     'data'      =>  $data
-                ],200);
-            }else{
+                ], 200);
+            } else {
                 $dataSigner    =   $cheking;
             }
         }
 
-        $create_pm    =   Project_managers::where('nama',request()->pm)->where('email',request()->emailpm)->first();
+        $create_pm    =   Project_managers::where('nama', request()->pm)->where('email', request()->emailpm)->first();
         if (!$create_pm) {
             $create_pm   = Project_managers::create([
                 'nama'      =>  request()->pm,
@@ -771,7 +860,7 @@ class ManageComSupport extends Controller {
         // restricted
         if (request()->restricted == null || request()->restricted == "0") {
             $restricted = '0';
-        }else{
+        } else {
             $restricted = '1';
         }
 
@@ -779,8 +868,8 @@ class ManageComSupport extends Controller {
             $project = Project::create([
                 'divisi_id'             => request()->divisi,
                 'project_managers_id'   => $create_pm->id,
-                'nama'                  => request()->title,
-                'slug'                  => $waktu."-".\Str::slug(request()->title),
+                'nama'                  => request()->project,
+                'slug'                  => $waktu . "-" . \Str::slug(request()->project),
                 'thumbnail'             => request()->thumbnail,
                 'deskripsi'             => '-',
                 'metodologi'            => '-',
@@ -801,7 +890,7 @@ class ManageComSupport extends Controller {
 
         if ($restricted == 1) {
             $user     =  request()->user;
-            for ($i=0; $i < count($user) ; $i++) {
+            for ($i = 0; $i < count($user); $i++) {
                 $simpanuser['project_id']   =   $project_id;
                 $simpanuser['user_id']      =   (int)$user[$i];
                 Restriction::create($simpanuser);
@@ -811,10 +900,16 @@ class ManageComSupport extends Controller {
             $user_access = '-';
         }
 
+        if(request()->has('title')){
+            $nameImpl = request()->title;
+        }else{
+            $nameImpl = request()->project;
+        }
+        
         if ($id == "*") {
             $create = Implementation::create([
-                'title'                 => request()->title,
-                'slug'                  => $waktu."-".\Str::slug(request()->title),
+                'title'                 => $nameImpl,
+                'slug'                  => $waktu . "-" . \Str::slug($nameImpl),
                 'project_managers_id'   => $create_pm->id,
                 'status'                => 'review',
                 'thumbnail'             => request()->thumbnail,
@@ -834,9 +929,9 @@ class ManageComSupport extends Controller {
             if (request()->piloting == 1) {
                 $tampung_attach_pilot     =   request()->attach_pilot;
                 if (isset($tampung_attach_pilot)) {
-                    for ($i=0; $i < count($tampung_attach_pilot) ; $i++) {
-                        $cek = TempUpload::where('path',$tampung_attach_pilot[$i])->first();
-                        if($cek){
+                    for ($i = 0; $i < count($tampung_attach_pilot); $i++) {
+                        $cek = TempUpload::where('path', $tampung_attach_pilot[$i])->first();
+                        if ($cek) {
                             $attach['implementation_id']       = $create->id;
                             $attach['tipe']                    = 'piloting';
                             $attach['nama']                    = $cek->nama_file;
@@ -854,9 +949,9 @@ class ManageComSupport extends Controller {
             if (request()->rollout == 1) {
                 $tampung_attach_rollout     =   request()->attach_rollout;
                 if (isset($tampung_attach_rollout)) {
-                    for ($i=0; $i < count($tampung_attach_rollout) ; $i++) {
-                        $cek = TempUpload::where('path',$tampung_attach_rollout[$i])->first();
-                        if($cek){
+                    for ($i = 0; $i < count($tampung_attach_rollout); $i++) {
+                        $cek = TempUpload::where('path', $tampung_attach_rollout[$i])->first();
+                        if ($cek) {
                             $attach['implementation_id']       = $create->id;
                             $attach['tipe']                    = 'rollout';
                             $attach['nama']                    = $cek->nama_file;
@@ -874,9 +969,9 @@ class ManageComSupport extends Controller {
             if (request()->sosialisasi == 1) {
                 $tampung_attach_sosialisasi     =   request()->attach_sosialisasi;
                 if (isset($tampung_attach_sosialisasi)) {
-                    for ($i=0; $i < count($tampung_attach_sosialisasi) ; $i++) {
-                        $cek = TempUpload::where('path',$tampung_attach_sosialisasi[$i])->first();
-                        if($cek){
+                    for ($i = 0; $i < count($tampung_attach_sosialisasi); $i++) {
+                        $cek = TempUpload::where('path', $tampung_attach_sosialisasi[$i])->first();
+                        if ($cek) {
                             $attach['implementation_id']       = $create->id;
                             $attach['tipe']                    = 'sosialisasi';
                             $attach['nama']                    = $cek->nama_file;
@@ -892,7 +987,7 @@ class ManageComSupport extends Controller {
             }
         } else {
 
-            $upd    =   Implementation::where('id',$id)->first();
+            $upd    =   Implementation::where('id', $id)->first();
             if (!$upd) {
                 $data_error['message'] = 'Implementation Not Found';
                 $data_error['error_code'] = 1; //error
@@ -903,7 +998,7 @@ class ManageComSupport extends Controller {
             }
 
             $data_new['title']                  = request()->title;
-            $data_new['slug']                   = $waktu."-".\Str::slug(request()->title);
+            $data_new['slug']                   = $waktu . "-" . \Str::slug(request()->title);
             $data_new['project_managers_id']    = $create_pm->id;
             $data_new['thumbnail']              = request()->thumbnail;
             $data_new['tanggal_mulai']          = request()->tgl_mulai;
@@ -926,9 +1021,9 @@ class ManageComSupport extends Controller {
                 }
 
                 if (isset($tampung_attach_pilot)) {
-                    for ($i=0; $i < count($tampung_attach_pilot) ; $i++) {
-                        $cek = TempUpload::where('path',$tampung_attach_pilot[$i])->first();
-                        if($cek){
+                    for ($i = 0; $i < count($tampung_attach_pilot); $i++) {
+                        $cek = TempUpload::where('path', $tampung_attach_pilot[$i])->first();
+                        if ($cek) {
                             $attach['implementation_id']       = $id;
                             $attach['tipe']                    = 'piloting';
                             $attach['nama']                    = $cek->nama_file;
@@ -946,12 +1041,12 @@ class ManageComSupport extends Controller {
             if (request()->rollout == 1) {
                 $tampung_attach_rollout     =   request()->attach_rollout;
                 if (isset($tampung_attach_rollout)) {
-                    AttachFile::whereNotIn('url_file', $tampung_attach_rollout)->where('implementation_id',$id)->delete();
+                    AttachFile::whereNotIn('url_file', $tampung_attach_rollout)->where('implementation_id', $id)->delete();
                 }
                 if (isset($tampung_attach_rollout)) {
-                    for ($i=0; $i < count($tampung_attach_rollout) ; $i++) {
-                        $cek = TempUpload::where('path',$tampung_attach_rollout[$i])->first();
-                        if($cek){
+                    for ($i = 0; $i < count($tampung_attach_rollout); $i++) {
+                        $cek = TempUpload::where('path', $tampung_attach_rollout[$i])->first();
+                        if ($cek) {
                             $attach['implementation_id']       = $id;
                             $attach['tipe']                    = 'rollout';
                             $attach['nama']                    = $cek->nama_file;
@@ -969,12 +1064,12 @@ class ManageComSupport extends Controller {
             if (request()->sosialisasi == 1) {
                 $tampung_attach_sosialisasi     =   request()->attach_sosialisasi;
                 if (isset($tampung_attach_sosialisasi)) {
-                    AttachFile::whereNotIn('url_file', $tampung_attach_sosialisasi)->where('implementation_id',$id)->delete();
+                    AttachFile::whereNotIn('url_file', $tampung_attach_sosialisasi)->where('implementation_id', $id)->delete();
                 }
                 if (isset($tampung_attach_sosialisasi)) {
-                    for ($i=0; $i < count($tampung_attach_sosialisasi) ; $i++) {
-                        $cek = TempUpload::where('path',$tampung_attach_sosialisasi[$i])->first();
-                        if($cek){
+                    for ($i = 0; $i < count($tampung_attach_sosialisasi); $i++) {
+                        $cek = TempUpload::where('path', $tampung_attach_sosialisasi[$i])->first();
+                        if ($cek) {
                             $attach['implementation_id']       = $id;
                             $attach['tipe']                    = 'sosialisasi';
                             $attach['nama']                    = $cek->nama_file;
@@ -990,7 +1085,7 @@ class ManageComSupport extends Controller {
             }
         }
 
-        $temp = TempUpload::where('path',request()->thumbnail)->first();
+        $temp = TempUpload::where('path', request()->thumbnail)->first();
         if ($temp) {
             $temp->delete();
         }
@@ -1008,24 +1103,25 @@ class ManageComSupport extends Controller {
         return response()->json([
             "status"    =>  1,
             "data"      => $data
-        ],200);
+        ], 200);
     }
 
-    public function getPublishComInnitiave(Request $request, $type) {
-        try{
+    public function getPublishComInnitiave(Request $request, $type)
+    {
+        try {
             $model = (new CommunicationSupport)->newQuery();
 
             $limit = intval($request->get('limit', 10));
             $offset = intval($request->get('offset', 0));
             $order = 'asc';
-            if($request->get('order')) {
+            if ($request->get('order')) {
                 $order = $request->get('order');
             }
-            if($request->get('sort')) {
+            if ($request->get('sort')) {
                 $model->orderBy('created_at', $order);
             }
-            if($request->get('search')) {
-                $model->where('title', 'like','%'.$request->get('search').'%');
+            if ($request->get('search')) {
+                $model->where('title', 'like', '%' . $request->get('search') . '%');
             }
 
             $data = $model->where('type_file', $type)
@@ -1040,19 +1136,20 @@ class ManageComSupport extends Controller {
                 "data"      => $data,
                 "total"     => $count,
                 "totalData" => $countTotal
-            ],200);
-        } catch (\Throwable $th){
+            ], 200);
+        } catch (\Throwable $th) {
             $datas['message']    =   'GET Gagal';
             return response()->json([
                 'status'    =>  0,
                 'data'      =>  $datas,
                 'error' => $th
-            ],200);
+            ], 200);
         }
     }
 
-    public function getDataUser($token_bri, $pn){
-        try{
+    public function getDataUser($token_bri, $pn)
+    {
+        try {
             $access_token   =   $token_bri;
             $ch2 = curl_init();
             $headers  = [
@@ -1063,13 +1160,13 @@ class ManageComSupport extends Controller {
             $postData = [
                 'pernr'     => $pn,
             ];
-            curl_setopt($ch2, CURLOPT_URL,config('app.api_detail_pekerja_bristar'));
+            curl_setopt($ch2, CURLOPT_URL, config('app.api_detail_pekerja_bristar'));
             curl_setopt($ch2, CURLOPT_POST, 1);
-            curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER , false);
+            curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($postData));
             curl_setopt($ch2, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch2, CURLOPT_HTTPHEADER, $headers);
-            $result2     = curl_exec ($ch2);
+            $result2     = curl_exec($ch2);
             $hasil2      = json_decode($result2);
             if (isset($hasil2->responseData->COST_CENTER)) {
                 // save data
@@ -1081,12 +1178,12 @@ class ManageComSupport extends Controller {
                     $dataDivisi = Divisi::where('cost_center', $ResponseCostcenter)->first();
                     // add user
                     $new                    = new User();
-                    $new->name              = $Responsenama??'User';
+                    $new->name              = $Responsenama ?? 'User';
                     $new->personal_number   = $pn;
-                    $new->username          = $Responsenama??'User';
-                    $new->email             = str_replace(" ",".",$Responsenama)."@gmail.com";
+                    $new->username          = $Responsenama ?? 'User';
+                    $new->email             = str_replace(" ", ".", $Responsenama) . "@gmail.com";
                     $new->role              = 3;
-                    $new->divisi            = isset($dataDivisi->id)? $dataDivisi->id : 11111111;
+                    $new->divisi            = isset($dataDivisi->id) ? $dataDivisi->id : 11111111;
                     $new->last_login_at     = Carbon::now();
                     $new->xp                = 0;
                     $new->avatar_id         = 1;
@@ -1096,7 +1193,7 @@ class ManageComSupport extends Controller {
                     return $new;
                 }
             }
-        }catch(\Throwable $th){
+        } catch (\Throwable $th) {
             return false;
         }
     }

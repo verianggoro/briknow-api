@@ -12,7 +12,7 @@ use Auth;
 class LessonLearnedController extends Controller
 {
     public function getAll(Request $request){
-            $validator= Validator::make($request-> all(), [
+            $validator = Validator::make($request-> all(), [
                 'tahap' => 'nullable',
                 'divisi' => 'nullable',
                 'search' => 'nullable'

@@ -7,6 +7,7 @@ use App\Divisi;
 use App\Events\TriggerActivityEvent;
 use App\Keyword_log;
 use App\Keywords;
+use App\Lesson_learned;
 use App\Project;
 use App\Search_log;
 use Auth;
@@ -16,6 +17,7 @@ use Illuminate\Http\Request;
 use stdClass;
 use File;
 use Illuminate\Support\Facades\Storage;
+use Validator;
 use ZipArchive;
 
 class ProjectController extends Controller
@@ -92,43 +94,91 @@ class ProjectController extends Controller
         }
     }
 
-    public function all(){
-        try {
-            // $get            = Project::search('')->get();
-            $ch = curl_init();
-            $headers  = [
-                        'Content-Type: application/json',
-                        'Accept: application/json',
-                    ];
-            curl_setopt($ch, CURLOPT_URL,config('app.ES_url').'/project/_search?pretty=true&q=*&size=10000&sort=tanggal_mulai:desc');
-            curl_setopt($ch, CURLOPT_HTTPGET, 1);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            $result     = curl_exec ($ch);
-            $hasil = json_decode($result);
-            if (isset($hasil->hits->hits)) {
-                    $data['data']         = $hasil->hits->hits;
-                    $data['count']        = $hasil->hits->total->value;
-            }else{
-                $data['data']         = [];
-                $data['count']        = 0;
-            }
-            // $data['data']    =   $get;
-            // $data['count']    =   $get->count();
-            return response()->json([
-                "status"    => '1',
-                "data"      => $data
-            ]);
-        } catch (\Throwable $th) {
-            $data['message']    =   "Terjadi Kesalahan, Coba Sesaat lagi";
-            return response()->json([
-                "status"    => '0',
-                "data"      => $data
-            ]);
+    public function all(Request $request){
+        $tahp = $request->tahap;
+        $div = $request->divisi;
+        $con = $request->consultant;
+        $key = $request->search;
+        $sort = $request->sort;
+
+        $arr_tahap = explode('-', $tahp);
+        $tahap = function ($q) use ($arr_tahap) {
+            $q->whereIn('tahap', $arr_tahap);
+        };
+
+        $arr_divisi = explode('-', $div);
+        $divisi = function ($q) use ($arr_divisi) {
+            $q->whereIn('divisi_id', $arr_divisi);
+        };
+
+        $arr_consul = explode('-', $con);
+        $consul = function ($q) use ($arr_consul) {
+            $q->whereIn('consultant_id', $arr_consul);
+        };
+
+        $search = function ($q) use ($key) {
+            $q->where('nama', 'LIKE', '%'.$key.'%');
+        };
+
+        // jika semuanya kosong
+        if (empty($tahp) && empty($div) && empty($con) && empty($key) && empty($sort)){
+            $query = Project::with(['lesson_learned'])->get();
         }
+
+        // kondisi tahap tidak kosong
+        elseif (!empty($tahp) && empty($div) && empty($con) && empty($key) && empty($sort)){
+            $query = Project::whereHas('lesson_learned', $tahap)->get();
+        } elseif (!empty($tahp) && !empty($div) && empty($con) && empty($key) && empty($sort)){
+            $query = Project::whereHas('lesson_learned', $tahap)->whereHas('lesson_learned', $divisi)->get();
+        } elseif (!empty($tahp) && !empty($div) && !empty($con) && empty($key) && empty($sort)){
+            $query = Project::whereHas('lesson_learned', $tahap)->whereHas('lesson_learned', $divisi)->whereHas('consultant', $consul)->get();
+        } elseif (!empty($tahp) && !empty($div) && !empty($con) && !empty($key) && empty($sort)){
+            $query = Project::whereHas('lesson_learned', $tahap)->whereHas('lesson_learned', $divisi)->whereHas('consultant', $consul)->whereHas('lesson_learned', $search)->get();
+        } elseif (!empty($tahp) && !empty($div) && !empty($con) && !empty($key) && !empty($sort)){
+            $query = Project::whereHas('lesson_learned', $tahap)->whereHas('lesson_learned', $divisi)->whereHas('consultant', $consul)->whereHas('lesson_learned', $search)->orderBy('nama', $sort)->get();
+        } elseif (!empty($tahp) && empty($div) && !empty($con) && empty($key) && empty($sort)){
+            $query = Project::whereHas('lesson_learned', $tahap)->whereHas('consultant', $consul)->get();
+        } elseif (!empty($tahp) && empty($div) && !empty($con) && !empty($key) && empty($sort)){
+            $query = Project::whereHas('lesson_learned', $tahap)->whereHas('consultant', $consul)->whereHas('lesson_learned', $search)->get();
+        } elseif (!empty($tahp) && empty($div) && !empty($con) && !empty($key) && !empty($sort)){
+            $query = Project::whereHas('lesson_learned', $tahap)->whereHas('consultant', $consul)->whereHas('lesson_learned', $search)->orderBy('nama', $sort)->get();
+        } elseif (!empty($tahp) && empty($div) && empty($con) && !empty($key) && empty($sort)){
+            $query = Project::whereHas('lesson_learned', $tahap)->whereHas('lesson_learned', $search)->get();
+        } elseif (!empty($tahp) && empty($div) && empty($con) && empty($key) && !empty($sort)){
+            $query = Project::whereHas('lesson_learned', $tahap)->orderBy('nama', $sort)->get();
+        } elseif (!empty($tahp) && empty($div) && empty($con) && !empty($key) && !empty($sort)){
+            $query = Project::whereHas('lesson_learned', $tahap)->whereHas('lesson_learned', $search)->orderBy('nama', $sort)->get();
+        }
+
+        // kondisi tahap kosong
+        elseif (empty($tahp) && !empty($div) && empty($con) && empty($key) && empty($sort)){
+            $query = Project::whereHas('lesson_learned', $divisi)->get();
+        } elseif (empty($tahp) && !empty($div) && !empty($con) && empty($key) && empty($sort)){
+            $query = Project::whereHas('lesson_learned', $divisi)->whereHas('consultant', $consul)->get();
+        } elseif (empty($tahp) && !empty($div) && !empty($con) && !empty($key) && empty($sort)){
+            $query = Project::whereHas('lesson_learned', $divisi)->whereHas('consultant', $consul)->whereHas('lesson_learned', $search)->get();
+        } elseif (empty($tahp) && !empty($div) && !empty($con) && !empty($key) && !empty($sort)){
+            $query = Project::whereHas('lesson_learned', $divisi)->whereHas('consultant', $consul)->whereHas('lesson_learned', $search)->orderBy('nama', $sort)->get();
+        } elseif (empty($tahp) && empty($div) && !empty($con) && empty($key) && empty($sort)){
+            $query = Project::with(['lesson_learned'])->whereHas('consultant', $consul)->get();
+        } elseif (empty($tahp) && empty($div) && !empty($con) && !empty($key) && empty($sort)){
+            $query = Project::whereHas('consultant', $consul)->whereHas('lesson_learned', $search)->get();
+        } elseif (empty($tahp) && empty($div) && !empty($con) && !empty($key) && !empty($sort)){
+            $query = Project::whereHas('consultant', $consul)->whereHas('lesson_learned', $search)->orderBy('nama', $sort)->get();
+        } elseif (empty($tahp) && empty($div) && empty($con) && !empty($key) && empty($sort)){
+            $query = Project::whereHas('lesson_learned', $search)->get();
+        } elseif (empty($tahp) && empty($div) && empty($con) && empty($key) && !empty($sort)){
+            $query = Project::with(['lesson_learned'])->orderBy('nama', $sort)->get();
+        } elseif (empty($tahp) && empty($div) && empty($con) && !empty($key) && !empty($sort)){
+            $query = Project::whereHas('lesson_learned', $search)->orderBy('nama', $sort)->get();
+        }
+
+        return response()->json([
+            "message"   => "GET Berhasil",
+            "status"    => 1,
+            "data"      => $query
+        ],200);
     }
-
-
 
     public function projectById($id) {
         try {
@@ -161,6 +211,7 @@ class ProjectController extends Controller
             $direktorat = Divisi::select('direktorat')->distinct('direktorat')->get();
             $consultant = Consultant::get();
             $tahun      = Project::orderby('tanggal_mulai','desc')->distinct()->get(['tanggal_mulai']);
+            $lessonlearn = Lesson_learned::distinct()->get(['tahap']);
             $keywords   = Keywords::select('nama', DB::raw('count(*) as num'))->groupby('nama')->orderby('num','desc')->get();
 
             $tampung = [];
@@ -171,6 +222,7 @@ class ProjectController extends Controller
                 foreach ($div as $key2) {
                     $object             = new stdClass;
                     $object->divisi     =   $key2->divisi;
+                    $object->id  =   $key2->id;
                     $object->shortname  =   $key2->shortname;
                     $temp2[]            =   $object;
                 }
@@ -203,7 +255,9 @@ class ProjectController extends Controller
             $data['tahun_asli'] =   $tahun;
             $data['divisi']     =   $divisi;
             $data['consultant'] =   $consultant;
+            $data['lessonlearn'] =   $lessonlearn;
             $data['keywords']   =   $keywords;
+            // $data['project'] = $query;
 
             return response()->json([
                 'status'    =>  '1',
@@ -239,9 +293,13 @@ class ProjectController extends Controller
             $divisi     =   explode(',', request()->divisi)??[];
             $divisi     =   $divisi ==  [""]    ?  $divisi=[] : $divisi;
 
-            $tampungkonsultant  = request()->konsultant;
-            $consultant         =   explode(',', $tampungkonsultant)??[];
+            $tampungconsultant  = request()->consultant;
+            $consultant         =   explode(',', $tampungconsultant)??[];
             $consultant         =   $consultant ==  [""]    ?  $consultant=[] : $consultant;
+
+            $tampunglessonlearn  = request()->lessonlearn;
+            $lessonlearn         =   explode(',', $tampunglessonlearn)??[];
+            $lessonlearn         =   $lessonlearn ==  [""]    ?  $lessonlearn=[] : $lessonlearn;
 
             $tahun      =   explode(',', request()->tahun)??[];
             $tahun      =   $tahun ==  [""]    ?  $tahun=[] : $tahun;
@@ -293,6 +351,9 @@ class ProjectController extends Controller
                             $match->wildcard    =   ["consultant.nama"   => str_replace('"',"",$p)];
                             $searchs[]          =  $match;
                             $match              =   new stdClass;
+                            $match->wildcard    =   ["lesson_learneds.tahap"   => str_replace('"',"",$p)];
+                            $searchs[]          =  $match;
+                            $match              =   new stdClass;
                             $match->wildcard    =   ["project_managers"   => str_replace('"',"",$p)];
                             $searchs[]          =  $match;
                             $match              =   new stdClass;
@@ -311,6 +372,9 @@ class ProjectController extends Controller
                         $searchs[]          =  $match;
                         $match              =   new stdClass;
                         $match->wildcard    =   ["consultant.nama"   => str_replace('"',"",$search)];
+                        $searchs[]          =  $match;
+                        $match              =   new stdClass;
+                        $match->wildcard    =   ["lesson_learneds.tahap"   => str_replace('"',"",$search)];
                         $searchs[]          =  $match;
                         $match              =   new stdClass;
                         $match->wildcard    =   ["project_managers"   => str_replace('"',"",$search)];
@@ -433,7 +497,7 @@ class ProjectController extends Controller
 
     public function preview($slug)
     {
-        $sample = Project::with(['consultant','divisi','keywords', 'lesson_learned','project_managers', 'document','comment' => function($q){
+        $sample = Project::with(['consultant','divisi','keywords','lesson_learned','project_managers','document','comment' => function($q){
             $q->where('parent_id',null);
             $q->orderby('created_at','desc');
             $q->with(['child' => function($q2){

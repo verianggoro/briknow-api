@@ -693,10 +693,10 @@ class HomeController extends Controller
             "instagram" => "Instagram Content"];
 
         $data=[];
-        $urlFE = config('app.FE_url').'managecommunication/communicationinitiative';
+        $urlFE = config('app.FE_url').'mycomsupport/initiative';
         $vend = CommunicationSupport::without(['attach_file', 'project'])
             ->select(DB::raw("type_file, sum(views) as jml, 
-                CONCAT_WS('/', '{$urlFE}', type_file, 'publish') AS url"))
+                CONCAT_WS('/', '{$urlFE}', type_file) AS url"))
             ->where('status', 'publish')
             ->groupBy("type_file")
             ->groupBy("url")
@@ -723,21 +723,21 @@ class HomeController extends Controller
     //count implementation
     public function countImplementation($stage = "default"){
 
-        $urlFE = config('app.FE_url').'managecommunication/implementation';
+        $urlFE = config('app.FE_url').'mycomsupport/implementation';
         $b = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
-            ->select(DB::raw("'Roll-Out' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'roll-out/publish') AS url"))
+            ->select(DB::raw("'Roll-Out' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'roll-out') AS url"))
             ->whereNotNull('desc_roll_out')
             ->groupBy("tahap")
             ->groupBy("url");
 
         $c = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
-            ->select(DB::raw("'Sosialisasi' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'sosialisasi/publish') AS url"))
+            ->select(DB::raw("'Sosialisasi' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'sosialisasi') AS url"))
             ->whereNotNull('desc_sosialisasi')
             ->groupBy("tahap")
             ->groupBy("url");
 
         $data = Implementation::without(['attach_file', 'project', 'project_managers', 'userchecker', 'usersigner', 'consultant', 'piloting', 'rollout', 'sosialisasi'])
-            ->select(DB::raw("'Piloting' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'piloting/publish') AS url"))
+            ->select(DB::raw("'Piloting' as tahap, coalesce(sum(views), 0) as jml, CONCAT_WS('/', '{$urlFE}', 'piloting') AS url"))
             ->whereNotNull('desc_piloting')
             ->union($b)
             ->union($c)

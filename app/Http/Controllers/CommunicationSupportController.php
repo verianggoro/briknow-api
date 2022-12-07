@@ -513,33 +513,41 @@ class CommunicationSupportController extends Controller {
     }
 
     function getFile($content, $id) {
+        try {
+            $model = null;
+            if ($content == 'implementation') {
+                $model = Implementation::where('id', $id);
+            } else if ($content == 'content') {
+                $model = CommunicationSupport::where('id', $id);
+            }
 
-        $model = null;
-        if ($content == 'implementation') {
-            $model = Implementation::where('id', $id);
-        } else if ($content == 'content') {
-            $model = CommunicationSupport::where('id', $id);
-        }
+            $datas = $model->first();
+            if (!$datas) {
+                $data_error['message'] = 'Proyek tidak ditemukan!';
+                $data_error['error_code'] = 1; //error
+                return response()->json([
+                    'status' => 0,
+                    'data'  => $data_error
+                ], 400);
+            }
 
-        $datas = $model->first();
-        if (!$datas) {
-            $data_error['message'] = 'Proyek tidak ditemukan!';
-            $data_error['error_code'] = 1; //error
+            $updateDetails['downloads'] = $datas->downloads + 1;
+            $model->update($updateDetails);
+
+            $data = $model->first();
+
             return response()->json([
-                'status' => 0,
-                'data'  => $data_error
-            ], 400);
+                "status"    => 1,
+                "data"      => $data,
+            ],200);
+        } catch (\Throwable $th) {
+            $data['message']    =   'Update gagal';
+            return response()->json([
+                'status'    =>  0,
+                'data'      =>  $data,
+                'error'     => $th
+            ],200);
         }
-
-        $updateDetails['downloads'] = $datas->downloads + 1;
-        $model->update($updateDetails);
-
-        $data = $model->first();
-
-        return response()->json([
-            "status"    => 1,
-            "data"      => $data,
-        ],200);
     }
 
     function getFileProject($id) {

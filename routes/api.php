@@ -92,13 +92,13 @@ use Illuminate\Support\Facades\Route;
                 Route::get('/managelessonlearned', 'LessonLearnedController@getAll');
 
             #Manage Communication Support
-                Route::get('/communicationinitiative/{type}/{status?}', 'ManageComSupport@getAllComInitiative');
+                Route::get('/communicationinitiative/{type}', 'ManageComSupport@getAllComInitiative');
                 Route::post('/communicationinitiative/status/{status}/{id}', 'ManageComSupport@setStatusComInit');
                 Route::delete('/communicationinitiative/delete/{id}', 'ManageComSupport@deleteComInit');
                 Route::get('/strategicinitiative', 'ManageComSupport@getAllStrategic');
                 Route::get('/strategicinitiative/project/{slug}', 'ManageComSupport@getStrategicByProject');
                 Route::get('/strategicinitiative/project/{slug}/{type}', 'ManageComSupport@getStrategicByProjectAndType');
-                Route::get('/implementation/{step}/{status?}', 'ManageComSupport@getAllImplementation');
+                Route::get('/implementation/{step}', 'ManageComSupport@getAllImplementation');
                 Route::post('/implementation/status/{status}/{id}', 'ManageComSupport@setStatusImplementation');
                 Route::delete('/implementation/delete/{id}', 'ManageComSupport@deleteImplementation');
 
